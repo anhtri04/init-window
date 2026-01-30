@@ -31,7 +31,15 @@ class StorageService {
   }
 
   getSettings(): AppSettings {
-    return this.store.get('settings', DEFAULT_SETTINGS);
+    const stored = this.store.get('settings', DEFAULT_SETTINGS);
+    // Merge with defaults to ensure new fields are populated
+    return {
+      ...DEFAULT_SETTINGS,
+      ...stored,
+      // Ensure arrays are always defined
+      excludedProcessNames: stored.excludedProcessNames ?? DEFAULT_SETTINGS.excludedProcessNames,
+      excludedPaths: stored.excludedPaths ?? DEFAULT_SETTINGS.excludedPaths,
+    };
   }
 
   saveSettings(settings: AppSettings): void {

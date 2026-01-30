@@ -18,6 +18,8 @@ export interface AppSettings {
   autoStartDelay: number;
   showNotifications: boolean;
   minimizeToTray: boolean;
+  excludedProcessNames: string[];
+  excludedPaths: string[];
 }
 
 export interface AppData {
@@ -40,4 +42,6 @@ export const DEFAULT_SETTINGS: AppSettings = {
   autoStartDelay: 15,
   showNotifications: true,
   minimizeToTray: true,
+  excludedProcessNames: [],
+  excludedPaths: [],
 };

@@ -5,15 +5,16 @@ import path from 'path';
 import fs from 'fs';
 import os from 'os';
 import crypto from 'crypto';
-import { App } from '../../shared/types';
+import { App, AppSettings } from '../../shared/types';
 import { ProcessService } from './ProcessService.interface';
+import { storageService } from './StorageService';
 
 const execAsync = promisify(exec);
 
 // Directory for cached app icons
 const ICON_CACHE_DIR = path.join(os.tmpdir(), 'init-window-icons');
 
-// System processes to exclude
+// System processes to exclude (by name)
 const EXCLUDED_PROCESSES = new Set([
   'system', 'registry', 'smss.exe', 'csrss.exe', 'wininit.exe',
   'services.exe', 'lsass.exe', 'svchost.exe', 'fontdrvhost.exe',
@@ -32,9 +33,57 @@ const EXCLUDED_PROCESSES = new Set([
   'WidgetService', 'Widgets', 'gopls', 'AppActions',
 ]);
 
+// System paths to exclude (processes from these directories are typically Windows internals)
+const EXCLUDED_PATHS = [
+  'C:\\Windows\\System32',
+  'C:\\Windows\\SysWOW64',
+  'C:\\Windows\\WinSxS',
+  'C:\\Windows\\explorer.exe', // Explorer is a special case - it's the shell
+];
+
 class WindowsProcessService implements ProcessService {
+  private isExcludedProcess(
+    name: string,
+    executablePath: string,
+    userSettings: AppSettings
+  ): boolean {
+    const lowerName = name.toLowerCase();
+    const lowerPath = executablePath.toLowerCase();
+
+    // 1. Check hardcoded process name exclusions
+    if (EXCLUDED_PROCESSES.has(lowerName)) {
+      return true;
+    }
+
+    // 2. Check system path exclusions
+    for (const excludedPath of EXCLUDED_PATHS) {
+      if (lowerPath.startsWith(excludedPath.toLowerCase())) {
+        return true;
+      }
+    }
+
+    // 3. Check user-defined process name exclusions
+    for (const excludedName of userSettings.excludedProcessNames ?? []) {
+      if (lowerName === excludedName.toLowerCase()) {
+        return true;
+      }
+    }
+
+    // 4. Check user-defined path exclusions
+    for (const excludedPath of userSettings.excludedPaths ?? []) {
+      if (lowerPath.startsWith(excludedPath.toLowerCase())) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   async scanRunningProcesses(): Promise<App[]> {
     try {
+      // Get user settings for exclusions
+      const userSettings = storageService.getSettings();
+
       // Use WMIC to get process name and executable path
       const { stdout } = await execAsync(
         'wmic process get Name,ExecutablePath /FORMAT:CSV',
@@ -52,8 +101,12 @@ class WindowsProcessService implements ProcessService {
         const name = parts[2]?.trim();
 
         if (!executablePath || !name) continue;
-        if (EXCLUDED_PROCESSES.has(name.toLowerCase())) continue;
         if (!fs.existsSync(executablePath)) continue;
+
+        // Apply hybrid exclusion filtering
+        if (this.isExcludedProcess(name, executablePath, userSettings)) {
+          continue;
+        }
 
         // Dedupe by path
         if (!processMap.has(executablePath)) {
