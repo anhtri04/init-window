@@ -29,9 +29,17 @@ export function AppListItem({
         />
       )}
 
-      <div className="w-6 h-6 bg-gray-300 rounded flex items-center justify-center text-xs">
-        {app.name.charAt(0).toUpperCase()}
-      </div>
+      {app.icon ? (
+        <img
+          src={`file://${app.icon}`}
+          alt=""
+          className="w-6 h-6 rounded object-contain"
+        />
+      ) : (
+        <div className="w-6 h-6 bg-gray-300 rounded flex items-center justify-center text-xs font-medium text-gray-600">
+          {app.name.charAt(0).toUpperCase()}
+        </div>
+      )}
 
       <span className="flex-1 truncate">{app.name}</span>
 

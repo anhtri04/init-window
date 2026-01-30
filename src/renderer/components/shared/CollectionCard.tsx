@@ -29,9 +29,40 @@ export function CollectionCard({
         </button>
       </div>
 
-      <p className="text-sm text-gray-500 mb-3">
-        {collection.apps.length} app{collection.apps.length !== 1 ? 's' : ''}
-      </p>
+      <div className="flex items-center gap-2 mb-3">
+        <p className="text-sm text-gray-500">
+          {collection.apps.length} app{collection.apps.length !== 1 ? 's' : ''}
+        </p>
+        {collection.apps.length > 0 && (
+          <div className="flex -space-x-1">
+            {collection.apps.slice(0, 4).map((app, index) => (
+              <div
+                key={app.id}
+                className="w-5 h-5 rounded border border-white bg-gray-100 flex items-center justify-center overflow-hidden"
+                style={{ zIndex: collection.apps.length - index }}
+                title={app.name}
+              >
+                {app.icon ? (
+                  <img
+                    src={`file://${app.icon}`}
+                    alt=""
+                    className="w-full h-full object-contain"
+                  />
+                ) : (
+                  <span className="text-[8px] font-medium text-gray-600">
+                    {app.name.charAt(0).toUpperCase()}
+                  </span>
+                )}
+              </div>
+            ))}
+            {collection.apps.length > 4 && (
+              <div className="w-5 h-5 rounded border border-white bg-gray-200 flex items-center justify-center text-[8px] text-gray-600">
+                +{collection.apps.length - 4}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       <div className="flex gap-2">
         <button

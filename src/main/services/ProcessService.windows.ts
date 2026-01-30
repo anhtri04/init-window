@@ -3,10 +3,15 @@ import { promisify } from 'util';
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
 import fs from 'fs';
+import os from 'os';
+import crypto from 'crypto';
 import { App } from '../../shared/types';
 import { ProcessService } from './ProcessService.interface';
 
 const execAsync = promisify(exec);
+
+// Directory for cached app icons
+const ICON_CACHE_DIR = path.join(os.tmpdir(), 'init-window-icons');
 
 // System processes to exclude
 const EXCLUDED_PROCESSES = new Set([
@@ -23,7 +28,8 @@ const EXCLUDED_PROCESSES = new Set([
   'vdsldr.exe', 'vds.exe', 'trustedinstaller.exe', 'tiworker.exe',
   'msiexec.exe', 'audiodg.exe', 'cmd.exe', 'powershell.exe',
   'windowsterminal.exe', 'openssh.exe', 'git.exe', 'node.exe',
-  'electron.exe', 'init-window.exe',
+  'electron.exe', 'init-window.exe', 'AsusOptimizationStartupTask', 'esbuild.exe',
+  'WidgetService', 'Widgets', 'gopls', 'AppActions',
 ]);
 
 class WindowsProcessService implements ProcessService {
@@ -55,13 +61,23 @@ class WindowsProcessService implements ProcessService {
             id: uuidv4(),
             name: path.basename(name, '.exe'),
             path: executablePath,
+            icon: undefined, // Will be populated below
           });
         }
       }
 
-      return Array.from(processMap.values()).sort((a, b) =>
+      const apps = Array.from(processMap.values()).sort((a, b) =>
         a.name.localeCompare(b.name)
       );
+
+      // Extract icons for all apps (in parallel for speed)
+      await Promise.all(
+        apps.map(async (app) => {
+          app.icon = await this.extractIcon(app.path);
+        })
+      );
+
+      return apps;
     } catch (error) {
       console.error('Failed to scan processes:', error);
       return [];
@@ -107,6 +123,83 @@ class WindowsProcessService implements ProcessService {
         }
       });
     });
+  }
+
+  async extractIcon(executablePath: string): Promise<string | undefined> {
+    try {
+      // Ensure cache directory exists
+      if (!fs.existsSync(ICON_CACHE_DIR)) {
+        fs.mkdirSync(ICON_CACHE_DIR, { recursive: true });
+      }
+
+      // Create unique filename based on executable path
+      const hash = crypto.createHash('md5').update(executablePath).digest('hex');
+      const iconPath = path.join(ICON_CACHE_DIR, `${hash}.png`);
+
+      // Return cached icon if already exists
+      if (fs.existsSync(iconPath)) {
+        return iconPath;
+      }
+
+      // Use PowerShell to extract icon via .NET
+      // Escape backslashes for PowerShell
+      const psPath = executablePath.replace(/\\/g, '\\\\');
+      const psIconPath = iconPath.replace(/\\/g, '\\\\');
+
+      // Use base64 encoded command to avoid escaping hell
+      const psScript = `
+        Add-Type -AssemblyName System.Drawing
+        try {
+          $icon = [System.Drawing.Icon]::ExtractAssociatedIcon('${psPath}')
+          if ($icon) {
+            $bitmap = $icon.ToBitmap()
+            $bitmap.Save('${psIconPath}', [System.Drawing.Imaging.ImageFormat]::Png)
+            $icon.Dispose()
+            $bitmap.Dispose()
+            Write-Output 'SUCCESS'
+          } else {
+            Write-Output 'FAILED: No icon found'
+          }
+        } catch {
+          Write-Output "FAILED: $_"
+        }
+      `;
+
+      // Convert to base64 to avoid all escaping issues
+      const psBytes = Buffer.from(psScript, 'utf16le');
+      const psBase64 = psBytes.toString('base64');
+
+      const command = `powershell.exe -NoProfile -ExecutionPolicy Bypass -EncodedCommand ${psBase64}`;
+      console.log(`[extractIcon] Executing command for ${path.basename(executablePath)}`);
+
+      let stdout: string;
+      let stderr: string;
+      try {
+        const result = await execAsync(command, { timeout: 10000 });
+        stdout = result.stdout;
+        stderr = result.stderr;
+      } catch (execError: any) {
+        console.error(`[extractIcon] execAsync threw error:`, execError);
+        return undefined;
+      }
+
+      console.log(`[extractIcon] stdout: "${stdout}"`);
+      if (stderr) {
+        console.warn(`[extractIcon] stderr: "${stderr}"`);
+      }
+
+      const result = stdout.trim();
+      if (result === 'SUCCESS' && fs.existsSync(iconPath)) {
+        console.log(`[extractIcon] SUCCESS for: ${path.basename(executablePath)}`);
+        return iconPath;
+      } else {
+        console.warn(`[extractIcon] Failed for ${executablePath}, result: "${result}", file exists: ${fs.existsSync(iconPath)}`);
+        return undefined;
+      }
+    } catch (error) {
+      console.error(`[extractIcon] Error extracting icon for ${executablePath}:`, error);
+      return undefined;
+    }
   }
 }
 
