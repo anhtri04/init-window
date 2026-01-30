@@ -15,7 +15,9 @@
       "Bash(npm install)",
       "Bash(npm run build:main)",
       "Bash(npx tsc -p tsconfig.main.json)",
-      "Bash(npx tsc -p tsconfig.main.json --outDir dist_test)"
+      "Bash(npx tsc -p tsconfig.main.json --outDir dist_test)",
+      "Bash(npm install winreg)",
+      "Bash(npm install --save-dev @types/winreg)"
     ]
   }
 }
