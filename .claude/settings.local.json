@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git init:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nAdd Init Window design document\n\nInitial project setup with UI mockup and comprehensive design spec covering:\n- Electron + React + Tailwind architecture\n- Platform-abstracted services for future cross-platform support\n- 3-screen UI flow \\(Capture/Build, Collections List, Edit\\)\n- Collection launch logic with error handling\n- System tray integration\n- Windows auto-start via Registry\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git commit:*)",
+      "Bash(npm init -y)",
+      "Bash(npm install --save-dev electron electron-builder typescript ts-node concurrently wait-on)",
+      "Bash(npm install react react-dom)",
+      "Bash(npm install --save-dev @types/react @types/react-dom tailwindcss postcss autoprefixer)",
+      "Bash(npm install electron-store uuid)",
+      "Bash(npm install --save-dev @types/uuid vite @vitejs/plugin-react)",
+      "Bash(npm --version)",
+      "Bash(npm install)",
+      "Bash(npm run build:main)",
+      "Bash(npx tsc -p tsconfig.main.json)",
+      "Bash(npx tsc -p tsconfig.main.json --outDir dist_test)"
+    ]
+  }
+}
