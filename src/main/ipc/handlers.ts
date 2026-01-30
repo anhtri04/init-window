@@ -3,6 +3,7 @@ import { App } from '../../shared/types';
 import { collectionService } from '../services/CollectionService';
 import { processService } from '../services/ProcessService.windows';
 import { storageService } from '../services/StorageService';
+import { trayManager } from '../tray/TrayManager';
 
 export function registerIpcHandlers(): void {
   // Process scanning
@@ -20,23 +21,32 @@ export function registerIpcHandlers(): void {
   });
 
   ipcMain.handle('collections:create', (_, name: string, apps: App[]) => {
-    return collectionService.create(name, apps);
+    const result = collectionService.create(name, apps);
+    trayManager.updateMenu();
+    return result;
   });
 
   ipcMain.handle('collections:update', (_, id: string, updates: { name?: string; apps?: App[] }) => {
-    return collectionService.update(id, updates);
+    const result = collectionService.update(id, updates);
+    trayManager.updateMenu();
+    return result;
   });
 
   ipcMain.handle('collections:delete', (_, id: string) => {
-    return collectionService.delete(id);
+    const result = collectionService.delete(id);
+    trayManager.updateMenu();
+    return result;
   });
 
   ipcMain.handle('collections:setAutoStart', (_, id: string) => {
-    return collectionService.setAutoStart(id);
+    const result = collectionService.setAutoStart(id);
+    trayManager.updateMenu();
+    return result;
   });
 
   ipcMain.handle('collections:clearAutoStart', () => {
     collectionService.clearAutoStart();
+    trayManager.updateMenu();
   });
 
   ipcMain.handle('collections:run', async (_, id: string) => {
