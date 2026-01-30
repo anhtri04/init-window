@@ -2,8 +2,29 @@ import { app, BrowserWindow } from 'electron';
 import path from 'path';
 import { registerIpcHandlers } from './ipc/handlers';
 import { trayManager } from './tray/TrayManager';
+import { collectionService } from './services/CollectionService';
+import { storageService } from './services/StorageService';
 
 let mainWindow: BrowserWindow | null = null;
+
+const isAutoStartMode = process.argv.includes('--auto-start');
+
+async function handleAutoStart() {
+  const settings = storageService.getSettings();
+  const autoStartCollection = collectionService.getAutoStartCollection();
+
+  if (!autoStartCollection) {
+    console.log('No auto-start collection configured');
+    return;
+  }
+
+  // Wait for configured delay
+  await new Promise((resolve) => setTimeout(resolve, settings.autoStartDelay * 1000));
+
+  // Run the collection
+  const result = await collectionService.run(autoStartCollection.id);
+  console.log('Auto-start result:', result);
+}
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -49,9 +70,14 @@ app.on('before-quit', () => {
   app.isQuitting = true;
 });
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   registerIpcHandlers();
   createWindow();
+
+  if (isAutoStartMode) {
+    mainWindow?.hide(); // Start hidden
+    await handleAutoStart();
+  }
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {

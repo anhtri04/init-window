@@ -4,6 +4,7 @@ import { collectionService } from '../services/CollectionService';
 import { processService } from '../services/ProcessService.windows';
 import { storageService } from '../services/StorageService';
 import { trayManager } from '../tray/TrayManager';
+import { autoStartService } from '../services/AutoStartService.windows';
 
 export function registerIpcHandlers(): void {
   // Process scanning
@@ -61,5 +62,18 @@ export function registerIpcHandlers(): void {
   ipcMain.handle('settings:update', (_, settings) => {
     storageService.saveSettings(settings);
     return storageService.getSettings();
+  });
+
+  // Auto-start
+  ipcMain.handle('autoStart:enable', async () => {
+    await autoStartService.enable();
+  });
+
+  ipcMain.handle('autoStart:disable', async () => {
+    await autoStartService.disable();
+  });
+
+  ipcMain.handle('autoStart:isEnabled', async () => {
+    return autoStartService.isEnabled();
   });
 }

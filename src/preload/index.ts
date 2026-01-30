@@ -37,6 +37,16 @@ const electronAPI = {
 
   updateSettings: (settings: AppSettings): Promise<AppSettings> =>
     ipcRenderer.invoke('settings:update', settings),
+
+  // Auto-start
+  enableAutoStart: (): Promise<void> =>
+    ipcRenderer.invoke('autoStart:enable'),
+
+  disableAutoStart: (): Promise<void> =>
+    ipcRenderer.invoke('autoStart:disable'),
+
+  isAutoStartEnabled: (): Promise<boolean> =>
+    ipcRenderer.invoke('autoStart:isEnabled'),
 };
 
 contextBridge.exposeInMainWorld('electron', electronAPI);
