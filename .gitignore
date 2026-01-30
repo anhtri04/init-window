@@ -1,1 +1,12 @@
 node_modules
+dist/
+release/
+.claude/
+*.d.ts
+*.d.ts.map
+*.js
+!*.config.js
+!*.config.ts
+!vite.config.ts
+!tailwind.config.js
+!postcss.config.js

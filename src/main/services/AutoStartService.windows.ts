@@ -19,7 +19,7 @@ class WindowsAutoStartService implements AutoStartService {
       const exePath = app.getPath('exe');
       const command = `"${exePath}" --auto-start`;
 
-      this.regKey.set(APP_NAME, Registry.REG_SZ, command, (err) => {
+      this.regKey.set(APP_NAME, Registry.REG_SZ, command, (err: Error | null) => {
         if (err) reject(err);
         else resolve();
       });
@@ -28,7 +28,7 @@ class WindowsAutoStartService implements AutoStartService {
 
   async disable(): Promise<void> {
     return new Promise((resolve, reject) => {
-      this.regKey.remove(APP_NAME, (err) => {
+      this.regKey.remove(APP_NAME, (err: Error | null) => {
         if (err && err.message.includes('does not exist')) {
           resolve(); // Already disabled
         } else if (err) {
@@ -42,7 +42,7 @@ class WindowsAutoStartService implements AutoStartService {
 
   async isEnabled(): Promise<boolean> {
     return new Promise((resolve) => {
-      this.regKey.get(APP_NAME, (err, item) => {
+      this.regKey.get(APP_NAME, (err: Error | null, item: any) => {
         resolve(!err && item !== null);
       });
     });

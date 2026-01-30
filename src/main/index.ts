@@ -40,7 +40,7 @@ function createWindow() {
 
   // Minimize to tray instead of closing
   mainWindow.on('close', (event) => {
-    if (!app.isQuitting) {
+    if (!isQuitting) {
       event.preventDefault();
       mainWindow?.hide();
     }
@@ -60,14 +60,19 @@ function createWindow() {
 }
 
 // Extend app type for isQuitting property
-declare module 'electron' {
-  interface App {
-    isQuitting?: boolean;
+declare global {
+  namespace NodeJS {
+    interface Global {
+      isQuitting?: boolean;
+    }
   }
 }
 
+// Track quitting state
+let isQuitting = false;
+
 app.on('before-quit', () => {
-  app.isQuitting = true;
+  isQuitting = true;
 });
 
 app.whenReady().then(async () => {

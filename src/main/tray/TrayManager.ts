@@ -3,7 +3,7 @@ import path from 'path';
 import { collectionService } from '../services/CollectionService';
 
 // Create a simple 16x16 icon buffer (blue square with "I" text)
-function createDefaultIcon(): nativeImage {
+function createDefaultIcon(): typeof nativeImage.createFromBuffer extends (...args: any[]) => infer R ? R : never {
   // Simple 16x16 PNG-like approach - create from buffer
   // This creates a simple colored square icon
   const size = 16;
@@ -54,7 +54,7 @@ class TrayManager {
 
     // Create tray icon
     const iconPath = path.join(__dirname, '../../assets/icon.png');
-    let icon: nativeImage;
+    let icon: ReturnType<typeof nativeImage.createFromPath>;
 
     try {
       icon = nativeImage.createFromPath(iconPath);

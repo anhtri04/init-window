@@ -1,4 +1,4 @@
-import { exec } from 'child_process';
+import { exec, spawn } from 'child_process';
 import { promisify } from 'util';
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
@@ -82,11 +82,28 @@ class WindowsProcessService implements ProcessService {
 
   async launchApp(executablePath: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      exec(`start "" "${executablePath}"`, (error) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve();
+      console.log(`[launchApp] Starting: ${executablePath}`);
+
+      const child = spawn('cmd', ['/c', 'start', '', executablePath], {
+        detached: true,
+        stdio: 'ignore',
+        windowsHide: true,
+      });
+
+      child.on('error', (err) => {
+        console.error(`[launchApp] Failed to spawn: ${executablePath}`, err);
+        reject(err);
+      });
+
+      child.on('spawn', () => {
+        console.log(`[launchApp] Spawned successfully: ${executablePath}`);
+        child.unref();
+        resolve();
+      });
+
+      child.on('exit', (code) => {
+        if (code !== 0) {
+          console.warn(`[launchApp] Process exited with code ${code}: ${executablePath}`);
         }
       });
     });
