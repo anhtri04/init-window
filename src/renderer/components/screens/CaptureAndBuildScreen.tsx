@@ -9,11 +9,25 @@ interface CaptureAndBuildScreenProps {
   onBuildComplete: () => void;
 }
 
+// Helper to determine if an app is a user app (not Microsoft/Windows system app)
+function isUserApp(app: App): boolean {
+  const lowerPath = app.path.toLowerCase();
+  // Exclude Microsoft and Windows system paths
+  return (
+    !lowerPath.includes('microsoft') &&
+    !lowerPath.includes('windows') &&
+    !lowerPath.startsWith('c:\\windows') &&
+    !lowerPath.startsWith('c:\\programdata') &&
+    !app.name.toLowerCase().startsWith('windows')
+  );
+}
+
 export function CaptureAndBuildScreen({ onBuildComplete }: CaptureAndBuildScreenProps) {
   const { apps, scanning, scan, clear } = useProcessScanner();
   const { collections, createCollection } = useAppContext();
   const [selectedApps, setSelectedApps] = useState<Set<string>>(new Set());
   const [collectionName, setCollectionName] = useState('');
+  const [filterUserApps, setFilterUserApps] = useState(false);
 
   const handleToggle = (app: App) => {
     setSelectedApps((prev) => {
@@ -27,16 +41,19 @@ export function CaptureAndBuildScreen({ onBuildComplete }: CaptureAndBuildScreen
     });
   };
 
+  // Filter apps based on toggle
+  const displayedApps = filterUserApps ? apps.filter(isUserApp) : apps;
+
   const handleSelectAll = () => {
-    if (selectedApps.size === apps.length) {
+    if (selectedApps.size === displayedApps.length) {
       setSelectedApps(new Set());
     } else {
-      setSelectedApps(new Set(apps.map((a) => a.id)));
+      setSelectedApps(new Set(displayedApps.map((a) => a.id)));
     }
   };
 
   const handleBuild = async () => {
-    const selected = apps.filter((a) => selectedApps.has(a.id));
+    const selected = displayedApps.filter((a) => selectedApps.has(a.id));
     if (selected.length === 0) return;
 
     const name = collectionName.trim() || `Collection ${collections.length + 1}`;
@@ -45,6 +62,7 @@ export function CaptureAndBuildScreen({ onBuildComplete }: CaptureAndBuildScreen
     // Reset state
     setSelectedApps(new Set());
     setCollectionName('');
+    setFilterUserApps(false);
     clear();
     onBuildComplete();
   };
@@ -60,16 +78,30 @@ export function CaptureAndBuildScreen({ onBuildComplete }: CaptureAndBuildScreen
         ) : (
           <>
             <div className="flex justify-between items-center mb-2">
-              <span className="text-sm text-gray-600">{apps.length} apps found</span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600">
+                  {displayedApps.length} apps{displayedApps.length !== apps.length && ` (of ${apps.length})`}
+                </span>
+                <button
+                  onClick={() => setFilterUserApps(!filterUserApps)}
+                  className={`text-xs px-2 py-1 rounded ${
+                    filterUserApps
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  {filterUserApps ? 'Filter: User Apps' : 'Filter'}
+                </button>
+              </div>
               <button
                 onClick={handleSelectAll}
                 className="text-sm text-blue-500 hover:text-blue-700"
               >
-                {selectedApps.size === apps.length ? 'Deselect all' : 'Select all'}
+                {selectedApps.size === displayedApps.length ? 'Deselect all' : 'Select all'}
               </button>
             </div>
             <div className="space-y-1">
-              {apps.map((app) => (
+              {displayedApps.map((app) => (
                 <AppListItem
                   key={app.id}
                   app={app}
