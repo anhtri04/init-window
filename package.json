@@ -16,8 +16,14 @@
     "appId": "com.initwindow.app",
     "productName": "Init Window",
     "directories": {
-      "output": "release"
+      "output": "release",
+      "buildResources": "build"
     },
+    "files": [
+      "dist/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
     "win": {
       "target": "nsis"
     }
