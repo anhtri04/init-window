@@ -4,6 +4,7 @@ import { useProcessScanner } from '../../hooks/useProcessScanner';
 import { useAppContext } from '../../context/AppContext';
 import { Button } from '../shared/Button';
 import { AppListItem } from '../shared/AppListItem';
+import { SkeletonAppListItem } from '../shared/SkeletonAppListItem';
 
 interface CaptureAndBuildScreenProps {
   onBuildComplete: () => void;
@@ -71,11 +72,20 @@ export function CaptureAndBuildScreen({ onBuildComplete }: CaptureAndBuildScreen
     <div className="flex flex-col h-full">
       {/* App list */}
       <div className="flex-1 overflow-y-auto p-4">
-        {apps.length === 0 ? (
+        {scanning && apps.length === 0 ? (
+          // Show skeleton loading during initial scan
+          <div className="space-y-1">
+            {Array.from({ length: 10 }).map((_, index) => (
+              <SkeletonAppListItem key={index} />
+            ))}
+          </div>
+        ) : apps.length === 0 ? (
+          // Show empty state when not scanning and no apps
           <div className="text-center text-gray-500 mt-8">
             <p className="mb-4">Click the button below to scan running applications</p>
           </div>
         ) : (
+          // Show actual apps
           <>
             <div className="flex justify-between items-center mb-2">
               <div className="flex items-center gap-2">

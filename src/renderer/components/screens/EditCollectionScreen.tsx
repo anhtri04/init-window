@@ -4,6 +4,7 @@ import { useAppContext } from '../../context/AppContext';
 import { useProcessScanner } from '../../hooks/useProcessScanner';
 import { Button } from '../shared/Button';
 import { AppListItem } from '../shared/AppListItem';
+import { SkeletonAppListItem } from '../shared/SkeletonAppListItem';
 
 interface EditCollectionScreenProps {
   collectionId: string;
@@ -82,11 +83,18 @@ export function EditCollectionScreen({
         </div>
 
         <div className="flex-1 overflow-y-auto p-4">
-          {scanning ? (
-            <p className="text-center text-gray-500">Scanning...</p>
+          {scanning && availableApps.length === 0 ? (
+            // Show skeleton loading during scan
+            <div className="space-y-1">
+              {Array.from({ length: 10 }).map((_, index) => (
+                <SkeletonAppListItem key={index} />
+              ))}
+            </div>
           ) : availableApps.length === 0 ? (
+            // Show empty state when no apps available
             <p className="text-center text-gray-500">No new apps to add</p>
           ) : (
+            // Show actual available apps
             <div className="space-y-1">
               {availableApps.map((app) => (
                 <AppListItem

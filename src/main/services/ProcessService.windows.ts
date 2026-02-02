@@ -16,21 +16,77 @@ const ICON_CACHE_DIR = path.join(os.tmpdir(), 'init-window-icons');
 
 // System processes to exclude (by name)
 const EXCLUDED_PROCESSES = new Set([
+  // Core Windows System Processes
   'system', 'registry', 'smss.exe', 'csrss.exe', 'wininit.exe',
-  'services.exe', 'lsass.exe', 'svchost.exe', 'fontdrvhost.exe',
+  'services.exe', 'lsass.exe', 'lsaiso.exe', 'svchost.exe', 'fontdrvhost.exe',
   'dwm.exe', 'sihost.exe', 'taskhostw.exe', 'ctfmon.exe',
-  'runtimebroker.exe', 'shellexperiencehost.exe', 'searchui.exe',
-  'searchapp.exe', 'startmenuexperiencehost.exe', 'textinputhost.exe',
+  'winlogon.exe', 'userinit.exe', 'logonui.exe', 'wlanext.exe',
+  
+  // Windows Shell & UI Components
+  'explorer.exe', 'runtimebroker.exe', 'shellexperiencehost.exe',
+  'searchui.exe', 'searchapp.exe', 'startmenuexperiencehost.exe',
+  'textinputhost.exe', 'applicationframehost.exe', 'systemsettings.exe',
+  'lockapp.exe', 'taskmgr.exe', 'mobsync.exe', 'werfault.exe',
+  'werfaultsecure.exe', 'wermgr.exe', 'wudfhost.exe',
+  
+  // Windows Search & Indexing
+  'searchindexer.exe', 'searchprotocolhost.exe', 'searchfilterhost.exe',
+  
+  // Windows Security & Updates
+  'securityhealthservice.exe', 'securityhealthsystray.exe', 'sgrmbroker.exe',
+  'msmpeng.exe', 'antimalwareservice.exe', 'nissrv.exe', 'mpcmdrun.exe',
+  'trustedinstaller.exe', 'tiworker.exe', 'wuauclt.exe', 'usoclient.exe',
+  'musnotification.exe', 'musnotificationux.exe',
+  
+  // Windows Services & Background Tasks
+  'spoolsv.exe', 'dashost.exe', 'wmiprvse.exe', 'msdtc.exe',
+  'vdsldr.exe', 'vds.exe', 'msiexec.exe', 'audiodg.exe',
   'conhost.exe', 'dllhost.exe', 'backgroundtaskhost.exe',
-  'applicationframehost.exe', 'systemsettings.exe', 'securityhealthservice.exe',
-  'securityhealthsystray.exe', 'sgrmbroker.exe', 'searchindexer.exe',
-  'searchprotocolhost.exe', 'searchfilterhost.exe', 'spoolsv.exe',
-  'wudfhost.exe', 'dashost.exe', 'wmiprvse.exe', 'msdtc.exe',
-  'vdsldr.exe', 'vds.exe', 'trustedinstaller.exe', 'tiworker.exe',
-  'msiexec.exe', 'audiodg.exe', 'cmd.exe', 'powershell.exe',
-  'windowsterminal.exe', 'openssh.exe', 'git.exe', 'node.exe',
-  'electron.exe', 'init-window.exe', 'AsusOptimizationStartupTask', 'esbuild.exe',
-  'WidgetService', 'Widgets', 'gopls', 'AppActions',
+  'backgroundtransferhost.exe', 'mobsync.exe', 'wsqmcons.exe',
+  'compattelrunner.exe', 'deviceenroller.exe', 'devicecensus.exe',
+  
+  // Windows Widgets & Notifications
+  'widgetservice.exe', 'widgets.exe', 'notificationcontrollerps.exe',
+  'actioncenter.exe', 'useroobebroker.exe',
+  
+  // Command Line & Scripting
+  'cmd.exe', 'powershell.exe', 'powershell_ise.exe', 'pwsh.exe',
+  'windowsterminal.exe', 'wt.exe', 'bash.exe', 'wsl.exe', 'wslhost.exe',
+  
+  // Development Tools (typically background processes)
+  'node.exe', 'electron.exe', 'git.exe', 'git-credential-manager.exe',
+  'openssh.exe', 'ssh.exe', 'ssh-agent.exe', 'esbuild.exe',
+  'gopls.exe', 'typescript.exe', 'tsc.exe',
+  
+  // Microsoft Store & Apps
+  'winstore.app.exe', 'wsappx.exe', 'wwahost.exe', 'appinstaller.exe',
+  
+  // Windows Telemetry & Diagnostics
+  'telemetryservice.exe', 'diagtrack.exe', 'utcsvc.exe',
+  
+  // Graphics & Display
+  'nvcontainer.exe', 'nvdisplay.container.exe', 'nvprofileupdater.exe',
+  'igfxem.exe', 'igfxtray.exe', 'hkcmd.exe', 'igfxpers.exe',
+  'amdrsserv.exe', 'atiesrxx.exe', 'atieclxx.exe', 'radeoninstaller.exe',
+  
+  // Audio Services
+  'audiodg.exe', 'audiosrv.exe', 'nahimicservice.exe', 'realtekaudiosvc.exe',
+  
+  // OEM Background Services (common manufacturers)
+  'asusoptimizationstartuptask.exe', 'asus.exe', 'asusswitch.exe',
+  'hpwuschd2.exe', 'hpsf.exe', 'hptouchpointmanager.exe',
+  'lenovowelcome.exe', 'lenovoutility.exe', 'lenovovantageservice.exe',
+  'dellsupportassist.exe', 'dellsupportassistagent.exe',
+  
+  // This Application
+  'init-window.exe',
+  
+  // Other Common Background Processes
+  'appactions.exe', 'gamebarpresencewriter.exe', 'gamebar.exe',
+  'xboxstat.exe', 'xboxapp.exe', 'gamingservices.exe',
+  'phoneexperiencehost.exe', 'yourphone.exe', 'yourphoneserver.exe',
+  'microsoftedgeupdate.exe', 'msedge.exe', 'msedgewebview2.exe',
+  'onedrive.exe', 'onedrivestandaloneupdater.exe', 'filecoauth.exe',
 ]);
 
 // System paths to exclude (processes from these directories are typically Windows internals)
@@ -42,6 +98,47 @@ const EXCLUDED_PATHS = [
 ];
 
 class WindowsProcessService implements ProcessService {
+    /**
+   * Normalize app name by removing common suffixes for helper processes
+   * This helps group related processes (e.g., "chrome" and "chrome_helper" both become "chrome")
+   */
+  private normalizeAppName(name: string): string {
+    const lowerName = name.toLowerCase().replace('.exe', '');
+    
+    // Remove common helper/service suffixes
+    const suffixes = [
+      '_helper', '_app', '_service', '_background', '_crashpad',
+      '_gpu', '_renderer', '_plugin', '_broker', '_updater',
+      '_installer', '_launcher', '_agent', '_daemon', '_worker',
+      'helper', 'service', 'updater', 'launcher'
+    ];
+    
+    for (const suffix of suffixes) {
+      if (lowerName.endsWith(suffix)) {
+        return lowerName.slice(0, -suffix.length);
+      }
+    }
+    
+    return lowerName;
+  }
+
+  /**
+   * Determine if an executable is likely the "main" process vs a helper
+   * Main processes are prioritized when deduplicating
+   */
+  private isMainExecutable(name: string): boolean {
+    const lowerName = name.toLowerCase();
+    
+    // Helper/background process indicators
+    const helperIndicators = [
+      'helper', 'crashpad', 'gpu', 'renderer', 'plugin',
+      'broker', 'updater', 'installer', 'agent', 'daemon',
+      'worker', 'background', 'service'
+    ];
+    
+    return !helperIndicators.some(indicator => lowerName.includes(indicator));
+  }
+
   private isExcludedProcess(
     name: string,
     executablePath: string,
@@ -108,14 +205,36 @@ class WindowsProcessService implements ProcessService {
           continue;
         }
 
-        // Dedupe by path
-        if (!processMap.has(executablePath)) {
-          processMap.set(executablePath, {
+        // Use parent directory as the deduplication key
+        // Processes from the same app are typically in the same folder
+        const parentDir = path.dirname(executablePath).toLowerCase();
+        const isMain = this.isMainExecutable(name);
+
+        // Smart deduplication: group by parent directory
+        const existing = processMap.get(parentDir);
+        
+        if (!existing) {
+          // First time seeing an app from this directory, add it
+          processMap.set(parentDir, {
             id: uuidv4(),
             name: path.basename(name, '.exe'),
             path: executablePath,
             icon: undefined, // Will be populated below
           });
+        } else {
+          // Already have an app from this directory - only replace if current is "more main"
+          const existingIsMain = this.isMainExecutable(existing.name);
+          
+          // Replace if: current is main AND existing is not main
+          if (isMain && !existingIsMain) {
+            processMap.set(parentDir, {
+              id: uuidv4(),
+              name: path.basename(name, '.exe'),
+              path: executablePath,
+              icon: undefined,
+            });
+          }
+          // Otherwise keep the existing one (skip this duplicate)
         }
       }
 
