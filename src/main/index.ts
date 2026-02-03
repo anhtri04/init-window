@@ -31,6 +31,7 @@ function createWindow() {
     width: 400,
     height: 600,
     resizable: false,
+    icon: path.join(app.getAppPath(), 'assets', 'icon.ico'),
     webPreferences: {
       preload: path.join(__dirname, '../preload/index.js'),
       contextIsolation: true,

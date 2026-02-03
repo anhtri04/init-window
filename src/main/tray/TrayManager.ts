@@ -52,8 +52,8 @@ class TrayManager {
   init(mainWindow: BrowserWindow) {
     this.mainWindow = mainWindow;
 
-    // Create tray icon
-    const iconPath = path.join(__dirname, '../../assets/icon.png');
+    // Create tray icon - use app.getAppPath() for reliable path resolution
+    const iconPath = path.join(app.getAppPath(), 'assets', 'icon.ico');
     let icon: ReturnType<typeof nativeImage.createFromPath>;
 
     try {

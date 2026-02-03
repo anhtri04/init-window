@@ -1,6 +1,6 @@
 {
   "name": "init-window",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "description": "Automate workspace setup with one click",
   "main": "dist/main/index.js",
   "scripts": {
@@ -21,11 +21,13 @@
     },
     "files": [
       "dist/**/*",
+      "assets/**/*",
       "node_modules/**/*",
       "package.json"
     ],
     "win": {
-      "target": "nsis"
+      "target": "nsis",
+      "icon": "assets/icon.ico"
     }
   },
   "devDependencies": {
