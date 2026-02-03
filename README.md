@@ -1,5 +1,10 @@
 # Init Window
 
+![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
+![Electron](https://img.shields.io/badge/Electron-40.0.0-47848F.svg)
+![React](https://img.shields.io/badge/React-19.2.3-61DAFB.svg)
+![License](https://img.shields.io/badge/license-ISC-green.svg)
+
 A Windows desktop application for automating workspace setup with one click. Capture running applications, save them as collections, and launch your entire workspace instantly.
 
 ## Features
