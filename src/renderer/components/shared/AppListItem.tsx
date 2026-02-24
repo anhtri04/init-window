@@ -19,7 +19,7 @@ export function AppListItem({
   showRemove = false,
 }: AppListItemProps) {
   return (
-    <div className="flex items-center gap-3 p-2 hover:bg-cream-dark rounded">
+    <div className="flex items-center gap-3 p-2 hover:bg-cream-dark rounded-sm">
       {showCheckbox && (
         <input
           type="checkbox"
@@ -33,10 +33,10 @@ export function AppListItem({
         <img
           src={`file://${app.icon}`}
           alt=""
-          className="w-6 h-6 rounded object-contain"
+          className="w-6 h-6 rounded-sm object-contain"
         />
       ) : (
-        <div className="w-6 h-6 bg-gray-300 rounded flex items-center justify-center text-xs font-medium text-gray-600">
+        <div className="w-6 h-6 bg-gray-300 rounded-sm flex items-center justify-center text-xs font-medium text-gray-600">
           {app.name.charAt(0).toUpperCase()}
         </div>
       )}

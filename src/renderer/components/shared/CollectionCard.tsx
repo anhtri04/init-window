@@ -17,7 +17,7 @@ export function CollectionCard({
   onToggleAutoStart,
 }: CollectionCardProps) {
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-sm">
+    <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-xs">
       <div className="flex items-center justify-between mb-2">
         <h3 className="font-medium truncate flex-1">{collection.name}</h3>
         <button
@@ -38,7 +38,7 @@ export function CollectionCard({
             {collection.apps.slice(0, 4).map((app, index) => (
               <div
                 key={app.id}
-                className="w-5 h-5 rounded border border-white bg-gray-100 flex items-center justify-center overflow-hidden"
+                className="w-5 h-5 rounded-sm border border-white bg-gray-100 flex items-center justify-center overflow-hidden"
                 style={{ zIndex: collection.apps.length - index }}
                 title={app.name}
               >
@@ -56,7 +56,7 @@ export function CollectionCard({
               </div>
             ))}
             {collection.apps.length > 4 && (
-              <div className="w-5 h-5 rounded border border-white bg-gray-200 flex items-center justify-center text-[8px] text-gray-600">
+              <div className="w-5 h-5 rounded-sm border border-white bg-gray-200 flex items-center justify-center text-[8px] text-gray-600">
                 +{collection.apps.length - 4}
               </div>
             )}
@@ -67,19 +67,19 @@ export function CollectionCard({
       <div className="flex gap-2">
         <button
           onClick={() => onRun(collection.id)}
-          className="flex-1 bg-green-500 hover:bg-green-600 text-white py-1 px-3 rounded text-sm"
+          className="flex-1 bg-green-500 hover:bg-green-600 text-white py-1 px-3 rounded-sm text-sm"
         >
           ▶ Run
         </button>
         <button
           onClick={() => onEdit(collection.id)}
-          className="bg-gray-200 hover:bg-gray-300 py-1 px-3 rounded text-sm"
+          className="bg-gray-200 hover:bg-gray-300 py-1 px-3 rounded-sm text-sm"
         >
           Edit
         </button>
         <button
           onClick={() => onDelete(collection.id)}
-          className="bg-red-100 hover:bg-red-200 text-red-600 py-1 px-3 rounded text-sm"
+          className="bg-red-100 hover:bg-red-200 text-red-600 py-1 px-3 rounded-sm text-sm"
         >
           ×
         </button>

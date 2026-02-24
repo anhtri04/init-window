@@ -39,14 +39,16 @@ export function registerIpcHandlers(): void {
     return result;
   });
 
-  ipcMain.handle('collections:setAutoStart', (_, id: string) => {
+  ipcMain.handle('collections:setAutoStart', async (_, id: string) => {
     const result = collectionService.setAutoStart(id);
+    await autoStartService.enable(); // Enable Windows Registry entry
     trayManager.updateMenu();
     return result;
   });
 
-  ipcMain.handle('collections:clearAutoStart', () => {
+  ipcMain.handle('collections:clearAutoStart', async () => {
     collectionService.clearAutoStart();
+    await autoStartService.disable(); // Remove Windows Registry entry
     trayManager.updateMenu();
   });
 

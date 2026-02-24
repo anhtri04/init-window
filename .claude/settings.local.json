@@ -17,7 +17,30 @@
       "Bash(npx tsc -p tsconfig.main.json)",
       "Bash(npx tsc -p tsconfig.main.json --outDir dist_test)",
       "Bash(npm install winreg)",
-      "Bash(npm install --save-dev @types/winreg)"
+      "Bash(npm install --save-dev @types/winreg)",
+      "Bash(npx tsc -p tsconfig.main.json --listEmittedFiles)",
+      "Bash(echo \"Exit code: $?\")",
+      "Bash(npx tsc -p tsconfig.main.json --traceResolution)",
+      "Bash(wmic process get Name,ExecutablePath /FORMAT:CSV)",
+      "Bash(wmic process where \"Name like ''%Discord%''\" get Name,ExecutablePath /FORMAT:CSV)",
+      "Bash(npm run build)",
+      "Bash(while read hash)",
+      "Bash(do echo \"=== $hash ===\")",
+      "Bash(done)",
+      "Bash(git remote add origin https://github.com/anhtri04/init-window.git)",
+      "Bash(git push -u origin master)",
+      "Bash(npm run dist)",
+      "Bash(npx electron-builder)",
+      "Bash(npx electron-builder --win)",
+      "Bash(ls -la release/*.exe)",
+      "Bash(dir \"C:\\\\Users\\\\Anh Tri\\\\Desktop\\\\final\\\\init-window\"\" 2>/dev/null || ls -la \"/c/Users/Anh Tri/Desktop/final/init-window/\" 2>/dev/null || find \"/c/Users/Anh Tri/Desktop/final/init-window \" -maxdepth 1 -type f)",
+      "Bash(node scripts/generate-icon.js)",
+      "Bash(npx tsc --noEmit)",
+      "Bash(git reset --soft HEAD~1)",
+      "Bash(git checkout README.md)",
+      "Bash(git restore --staged README.md)",
+      "Bash(git push)",
+      "Bash(npx tsc --noEmit -p tsconfig.main.json)"
     ]
   }
 }

@@ -1114,7 +1114,7 @@ export function Button({
   children,
   ...props
 }: ButtonProps) {
-  const baseStyles = 'font-medium rounded transition-colors disabled:opacity-50';
+  const baseStyles = 'font-medium rounded-sm transition-colors disabled:opacity-50';
 
   const variants = {
     primary: 'bg-blue-500 hover:bg-blue-600 text-white',
@@ -1163,7 +1163,7 @@ export function AppListItem({
   showRemove = false,
 }: AppListItemProps) {
   return (
-    <div className="flex items-center gap-3 p-2 hover:bg-cream-dark rounded">
+    <div className="flex items-center gap-3 p-2 hover:bg-cream-dark rounded-sm">
       {showCheckbox && (
         <input
           type="checkbox"
@@ -1173,7 +1173,7 @@ export function AppListItem({
         />
       )}
 
-      <div className="w-6 h-6 bg-gray-300 rounded flex items-center justify-center text-xs">
+      <div className="w-6 h-6 bg-gray-300 rounded-sm flex items-center justify-center text-xs">
         {app.name.charAt(0).toUpperCase()}
       </div>
 
@@ -1215,7 +1215,7 @@ export function CollectionCard({
   onToggleAutoStart,
 }: CollectionCardProps) {
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-sm">
+    <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-xs">
       <div className="flex items-center justify-between mb-2">
         <h3 className="font-medium truncate flex-1">{collection.name}</h3>
         <button
@@ -1234,19 +1234,19 @@ export function CollectionCard({
       <div className="flex gap-2">
         <button
           onClick={() => onRun(collection.id)}
-          className="flex-1 bg-green-500 hover:bg-green-600 text-white py-1 px-3 rounded text-sm"
+          className="flex-1 bg-green-500 hover:bg-green-600 text-white py-1 px-3 rounded-sm text-sm"
         >
           ▶ Run
         </button>
         <button
           onClick={() => onEdit(collection.id)}
-          className="bg-gray-200 hover:bg-gray-300 py-1 px-3 rounded text-sm"
+          className="bg-gray-200 hover:bg-gray-300 py-1 px-3 rounded-sm text-sm"
         >
           Edit
         </button>
         <button
           onClick={() => onDelete(collection.id)}
-          className="bg-red-100 hover:bg-red-200 text-red-600 py-1 px-3 rounded text-sm"
+          className="bg-red-100 hover:bg-red-200 text-red-600 py-1 px-3 rounded-sm text-sm"
         >
           ×
         </button>
@@ -1367,7 +1367,7 @@ export function CaptureAndBuildScreen({ onBuildComplete }: CaptureAndBuildScreen
             placeholder={`Collection ${collections.length + 1}`}
             value={collectionName}
             onChange={(e) => setCollectionName(e.target.value)}
-            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border rounded-sm focus:outline-hidden focus:ring-2 focus:ring-blue-500"
           />
         )}
 
@@ -1669,7 +1669,7 @@ export function EditCollectionScreen({
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Collection name"
-          className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border rounded-sm focus:outline-hidden focus:ring-2 focus:ring-blue-500"
         />
       </div>
 

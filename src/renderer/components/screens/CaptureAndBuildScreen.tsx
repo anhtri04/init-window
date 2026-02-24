@@ -133,7 +133,7 @@ export function CaptureAndBuildScreen({ onBuildComplete }: CaptureAndBuildScreen
             placeholder={`Collection ${collections.length + 1}`}
             value={collectionName}
             onChange={(e) => setCollectionName(e.target.value)}
-            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border rounded-sm focus:outline-hidden focus:ring-2 focus:ring-blue-500"
           />
         )}
 

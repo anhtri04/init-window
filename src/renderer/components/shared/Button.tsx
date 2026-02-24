@@ -12,7 +12,7 @@ export function Button({
   children,
   ...props
 }: ButtonProps) {
-  const baseStyles = 'font-medium rounded transition-colors disabled:opacity-50';
+  const baseStyles = 'font-medium rounded-sm transition-colors disabled:opacity-50';
 
   const variants = {
     primary: 'bg-blue-500 hover:bg-blue-600 text-white',
