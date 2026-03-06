@@ -1,10 +1,20 @@
 import { ipcMain } from 'electron';
 import { App } from '../../shared/types';
 import { collectionService } from '../services/CollectionService';
-import { processService } from '../services/ProcessService.windows';
 import { storageService } from '../services/StorageService';
 import { trayManager } from '../tray/TrayManager';
-import { autoStartService } from '../services/AutoStartService.windows';
+
+// Platform-specific service imports
+let processService: typeof import('../services/ProcessService.windows').processService;
+let autoStartService: typeof import('../services/AutoStartService.windows').autoStartService;
+
+if (process.platform === 'darwin') {
+  processService = require('../services/ProcessService.darwin').processService;
+  autoStartService = require('../services/AutoStartService.darwin').autoStartService;
+} else {
+  processService = require('../services/ProcessService.windows').processService;
+  autoStartService = require('../services/AutoStartService.windows').autoStartService;
+}
 
 export function registerIpcHandlers(): void {
   // Process scanning
