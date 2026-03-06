@@ -1,11 +1,51 @@
-node_modules
+# Dependencies
+node_modules/
+
+# Build outputs
 dist/
 release/
+build/
+out/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing
+coverage/
+.nyc_output/
+
+# Misc
 .claude/
 .docs/
+.cache/
+*.tmp
+
+# TypeScript declaration files (generated)
 *.d.ts
 *.d.ts.map
 *.js
+
+# Keep config files
 !*.config.js
 !*.config.ts
 !vite.config.ts
