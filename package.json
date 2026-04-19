@@ -28,6 +28,11 @@
     "win": {
       "target": "nsis",
       "icon": "assets/icon.ico"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "assets/icon.icns",
+      "category": "public.app-category.productivity"
     }
   },
   "devDependencies": {
@@ -51,7 +56,9 @@
     "electron-store": "^8.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "uuid": "^9.0.0",
+    "uuid": "^9.0.0"
+  },
+  "optionalDependencies": {
     "winreg": "^1.2.5"
   }
 }

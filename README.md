@@ -7,6 +7,9 @@
 
 A Windows desktop application for automating workspace setup with one click. Capture running applications, save them as collections, and launch your entire workspace instantly.
 
+[![BuyMeACoffee](https://raw.githubusercontent.com/pachadotdev/buymeacoffee-badges/main/bmc-yellow.svg)](https://buymeacoffee.com/anhtri04)
+
+
 ## Features
 
 - **Process Capture**: Scan and identify currently running Windows applications
@@ -197,4 +200,4 @@ init-window/
 
 ## License
 
-[Your License Here]
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
