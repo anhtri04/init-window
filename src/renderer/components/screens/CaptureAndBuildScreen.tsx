@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { App } from '../../../shared/types';
 import { useProcessScanner } from '../../hooks/useProcessScanner';
 import { useAppContext } from '../../context/AppContext';
+import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
+import { ShortcutBar } from '../shared/ShortcutBar';
 import { Button } from '../shared/Button';
 import { AppListItem } from '../shared/AppListItem';
 import { SkeletonAppListItem } from '../shared/SkeletonAppListItem';
@@ -10,10 +12,8 @@ interface CaptureAndBuildScreenProps {
   onBuildComplete: () => void;
 }
 
-// Helper to determine if an app is a user app (not Microsoft/Windows system app)
 function isUserApp(app: App): boolean {
   const lowerPath = app.path.toLowerCase();
-  // Exclude Microsoft and Windows system paths
   return (
     !lowerPath.includes('microsoft') &&
     !lowerPath.includes('windows') &&
@@ -42,7 +42,6 @@ export function CaptureAndBuildScreen({ onBuildComplete }: CaptureAndBuildScreen
     });
   };
 
-  // Filter apps based on toggle
   const displayedApps = filterUserApps ? apps.filter(isUserApp) : apps;
 
   const handleSelectAll = () => {
@@ -60,7 +59,6 @@ export function CaptureAndBuildScreen({ onBuildComplete }: CaptureAndBuildScreen
     const name = collectionName.trim() || `Collection ${collections.length + 1}`;
     await createCollection(name, selected);
 
-    // Reset state
     setSelectedApps(new Set());
     setCollectionName('');
     setFilterUserApps(false);
@@ -68,33 +66,59 @@ export function CaptureAndBuildScreen({ onBuildComplete }: CaptureAndBuildScreen
     onBuildComplete();
   };
 
+  useKeyboardShortcuts(
+    [
+      {
+        key: ' ',
+        action: () => {
+          if (!scanning) scan();
+        },
+        description: 'Scan',
+      },
+      {
+        key: 'a',
+        ctrl: true,
+        action: handleSelectAll,
+        description: 'Select all',
+      },
+      {
+        key: 'Escape',
+        action: () => setSelectedApps(new Set()),
+        description: 'Deselect',
+      },
+      {
+        key: 'Enter',
+        action: handleBuild,
+        description: 'Build',
+      },
+    ],
+    true
+  );
+
   return (
     <div className="flex flex-col h-full">
-      {/* App list */}
       <div className="flex-1 overflow-y-auto p-4">
         {scanning && apps.length === 0 ? (
-          // Show skeleton loading during initial scan
           <div className="space-y-1">
             {Array.from({ length: 10 }).map((_, index) => (
               <SkeletonAppListItem key={index} />
             ))}
           </div>
         ) : apps.length === 0 ? (
-          // Show empty state when not scanning and no apps
           <div className="text-center text-gray-500 mt-8">
             <p className="mb-4">Click the button below to scan running applications</p>
           </div>
         ) : (
-          // Show actual apps
           <>
             <div className="flex justify-between items-center mb-2">
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-600">
-                  {displayedApps.length} apps{displayedApps.length !== apps.length && ` (of ${apps.length})`}
+                  {displayedApps.length} apps
+                  {displayedApps.length !== apps.length && ` (of ${apps.length})`}
                 </span>
                 <button
                   onClick={() => setFilterUserApps(!filterUserApps)}
-                  className={`text-xs px-2 py-1 rounded ${
+                  className={`text-xs px-2 py-1 rounded transition-colors ${
                     filterUserApps
                       ? 'bg-blue-500 text-white'
                       : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
@@ -125,7 +149,6 @@ export function CaptureAndBuildScreen({ onBuildComplete }: CaptureAndBuildScreen
         )}
       </div>
 
-      {/* Bottom section */}
       <div className="border-t bg-cream p-4 space-y-3">
         {apps.length > 0 && (
           <input
@@ -158,6 +181,15 @@ export function CaptureAndBuildScreen({ onBuildComplete }: CaptureAndBuildScreen
           )}
         </div>
       </div>
+
+      {/* <ShortcutBar
+        shortcuts={[
+          { key: 'Space', label: 'Scan' },
+          { key: 'Ctrl+A', label: 'Select all' },
+          { key: 'Esc', label: 'Deselect' },
+          { key: 'Enter', label: 'Build' },
+        ]}
+      /> */}
     </div>
   );
 }

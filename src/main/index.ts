@@ -4,6 +4,7 @@ import { registerIpcHandlers } from './ipc/handlers';
 import { trayManager } from './tray/TrayManager';
 import { collectionService } from './services/CollectionService';
 import { storageService } from './services/StorageService';
+import { globalShortcutService } from './services/GlobalShortcutService';
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -55,10 +56,11 @@ function createWindow() {
     mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
   }
 
-  // Initialize tray after window is ready
-  mainWindow.webContents.on('did-finish-load', () => {
-    trayManager.init(mainWindow!);
-  });
+// Initialize tray after window is ready
+    mainWindow.webContents.on('did-finish-load', () => {
+      trayManager.init(mainWindow!);
+      globalShortcutService.init(mainWindow!);
+    });
 }
 
 // Extend app type for isQuitting property
