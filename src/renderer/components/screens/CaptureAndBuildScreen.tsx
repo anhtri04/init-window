@@ -12,14 +12,55 @@ interface CaptureAndBuildScreenProps {
   onBuildComplete: () => void;
 }
 
+const USER_APP_EXCEPTIONS = [
+  // Developer tools
+  'visual studio code',
+  'vscode',
+  'visual studio',
+  'azure data studio',
+  'sql server management studio',
+  'ssms',
+  'windows terminal',
+  'powershell',
+  'powertoys',
+  'dotnet',
+
+  // Browsers & Communication
+  'microsoft edge',
+  'microsoft teams',
+  'skype',
+
+  // Productivity
+  'outlook',
+  'onenote',
+  'microsoft to do',
+  'microsoft whiteboard',
+  'onedrive',
+
+  // Gaming
+  'xbox',
+  'minecraft',
+];
+
 function isUserApp(app: App): boolean {
+  const lowerName = app.name.toLowerCase();
   const lowerPath = app.path.toLowerCase();
+
+  // Check if app is in the exception list
+  const isException = USER_APP_EXCEPTIONS.some(
+    (exception) => lowerName.includes(exception) || lowerPath.includes(exception)
+  );
+
+  if (isException) {
+    return true;
+  }
+
   return (
     !lowerPath.includes('microsoft') &&
     !lowerPath.includes('windows') &&
     !lowerPath.startsWith('c:\\windows') &&
     !lowerPath.startsWith('c:\\programdata') &&
-    !app.name.toLowerCase().startsWith('windows')
+    !lowerName.startsWith('windows')
   );
 }
 
