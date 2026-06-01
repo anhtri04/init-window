@@ -29,9 +29,11 @@ async function handleAutoStart() {
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 400,
+    width: 1200,
     height: 600,
-    resizable: false,
+    minWidth: 400,
+    minHeight: 600,
+    resizable: true,
     icon: path.join(app.getAppPath(), 'assets', 'icon.ico'),
     webPreferences: {
       preload: path.join(__dirname, '../preload/index.js'),
