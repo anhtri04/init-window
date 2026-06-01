@@ -20,6 +20,10 @@ npm run dist             # Build + create Windows installer -> release/
 npx tsc --noEmit         # Check TypeScript errors without emitting
 ```
 
+## Design System
+
+Renderer UI changes must follow `design-token.md`. That file is the source of truth for the init-window visual language, including colors, typography, spacing, rounded corners, component patterns, and Tailwind token usage. When changing UI in `src/renderer/`, read `design-token.md` first and keep `src/renderer/index.css` tokens in sync with it.
+
 ## Architecture
 
 **Init Window** is a Windows desktop application built with Electron, React, and TypeScript. It captures running applications, saves them as collections, and allows launching entire workspaces with one click.
