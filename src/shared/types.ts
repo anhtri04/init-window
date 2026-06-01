@@ -5,6 +5,31 @@ export interface App {
   icon?: string;
 }
 
+export interface AppMetric {
+  appId: string;
+  name: string;
+  path: string;
+  icon?: string;
+  isRunning: boolean;
+  processCount: number;
+  cpuPercent: number;
+  memoryMB: number;
+  uptimeSeconds?: number;
+  startedAt?: string;
+  pidList: number[];
+}
+
+export interface CollectionMetric {
+  collectionId: string;
+  totalApps: number;
+  runningApps: number;
+  totalCpuPercent: number;
+  totalMemoryMB: number;
+  longestUptimeSeconds: number;
+  apps: AppMetric[];
+  updatedAt: string;
+}
+
 export interface Collection {
   id: string;
   name: string;

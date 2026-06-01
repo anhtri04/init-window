@@ -7,13 +7,16 @@ import { trayManager } from '../tray/TrayManager';
 // Platform-specific service imports
 let processService: typeof import('../services/ProcessService.windows').processService;
 let autoStartService: typeof import('../services/AutoStartService.windows').autoStartService;
+let metricsService: typeof import('../services/MetricsService.windows').metricsService;
 
 if (process.platform === 'darwin') {
   processService = require('../services/ProcessService.darwin').processService;
   autoStartService = require('../services/AutoStartService.darwin').autoStartService;
+  metricsService = require('../services/MetricsService.darwin').metricsService;
 } else {
   processService = require('../services/ProcessService.windows').processService;
   autoStartService = require('../services/AutoStartService.windows').autoStartService;
+  metricsService = require('../services/MetricsService.windows').metricsService;
 }
 
 export function registerIpcHandlers(): void {
@@ -64,6 +67,11 @@ export function registerIpcHandlers(): void {
 
   ipcMain.handle('collections:run', async (_, id: string) => {
     return collectionService.run(id);
+  });
+
+  // Metrics
+  ipcMain.handle('metrics:getCollection', async (_, id: string) => {
+    return metricsService.getCollectionMetrics(id);
   });
 
   // Settings

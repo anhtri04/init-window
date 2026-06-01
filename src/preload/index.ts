@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import { App, Collection, AppSettings, RunResult } from '../shared/types';
+import { App, Collection, AppSettings, RunResult, CollectionMetric } from '../shared/types';
 
 const electronAPI = {
   // Process
@@ -30,6 +30,10 @@ const electronAPI = {
 
   runCollection: (id: string): Promise<RunResult> =>
     ipcRenderer.invoke('collections:run', id),
+
+  // Metrics
+  getCollectionMetrics: (id: string): Promise<CollectionMetric | null> =>
+    ipcRenderer.invoke('metrics:getCollection', id),
 
   // Settings
   getSettings: (): Promise<AppSettings> =>
