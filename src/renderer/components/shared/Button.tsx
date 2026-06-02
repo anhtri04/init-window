@@ -13,7 +13,7 @@ export function Button({
   ...props
 }: ButtonProps) {
   const baseStyles =
-    'inline-flex items-center justify-center rounded-full font-semibold transition-colors focus:outline-hidden focus:ring-2 focus:ring-brand-green/35 disabled:cursor-not-allowed disabled:opacity-50';
+    'inline-flex items-center justify-center rounded-lg font-semibold transition-colors focus:outline-hidden focus:ring-2 focus:ring-brand-green/35 disabled:cursor-not-allowed disabled:opacity-50';
 
   const variants = {
     primary: 'bg-brand-green text-ink active:bg-brand-green-dark active:text-on-dark',

@@ -20,10 +20,10 @@ export function CollectionSidebar({
   onSelect,
 }: CollectionSidebarProps) {
   return (
-    <aside className="flex h-full w-[30%] min-w-[260px] flex-col border-r border-hairline bg-canvas">
-      <div className="border-b border-hairline px-4 py-4">
+    <aside className="flex h-full w-[20%] min-w-[260px] flex-col border-r border-hairline bg-canvas">
+      <div className="bg-brand-teal-deep border-b border-hairline px-4 py-4 text-on-dark">
         <p className="text-xs font-semibold uppercase tracking-[0.14em] text-steel">Collections</p>
-        <h2 className="mt-1 text-xl font-semibold tracking-[-0.3px] text-ink">Workspace list</h2>
+        <h2 className="mt-1 text-xl font-semibold tracking-[-0.3px]">Workspace list</h2>
       </div>
 
       <div className="flex-1 overflow-y-auto p-3">

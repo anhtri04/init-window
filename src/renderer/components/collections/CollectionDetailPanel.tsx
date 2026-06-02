@@ -171,7 +171,7 @@ export function CollectionDetailPanel({
 
       <div className="flex-1 overflow-y-auto p-5">
         <div className="space-y-4">
-          <div className="flex items-center justify-between rounded-xl border border-hairline bg-canvas px-4 py-3">
+          <div className="flex items-center justify-between">
             <div className="flex flex-wrap items-center gap-2">
               <Button onClick={onRun} disabled={running} size="sm">
                 {running ? 'Launching...' : '▶ Run'}
