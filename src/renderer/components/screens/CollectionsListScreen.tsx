@@ -177,6 +177,7 @@ export function CollectionsListScreen({ onEdit }: CollectionsListScreenProps) {
         runResult={runResult}
         onRun={() => selectedCollection && handleRun(selectedCollection.id)}
         onEdit={() => selectedCollection && onEdit(selectedCollection.id)}
+        onDelete={() => selectedCollection && handleDelete(selectedCollection.id)}
         onToggleAutoStart={() => selectedCollection && handleToggleAutoStart(selectedCollection.id)}
         onRefresh={() => refreshMetrics(true)}
         onDismissRunResult={() => setRunResult(null)}

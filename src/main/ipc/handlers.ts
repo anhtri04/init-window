@@ -46,8 +46,14 @@ export function registerIpcHandlers(): void {
     return result;
   });
 
-  ipcMain.handle('collections:delete', (_, id: string) => {
+  ipcMain.handle('collections:delete', async (_, id: string) => {
+    const collection = collectionService.get(id);
     const result = collectionService.delete(id);
+
+    if (result && collection?.isAutoStart) {
+      await autoStartService.disable();
+    }
+
     trayManager.updateMenu();
     return result;
   });

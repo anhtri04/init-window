@@ -11,6 +11,7 @@ interface CollectionDetailPanelProps {
   runResult: RunResult | null;
   onRun: () => void;
   onEdit: () => void;
+  onDelete: () => void;
   onToggleAutoStart: () => void;
   onRefresh: () => void;
   onDismissRunResult: () => void;
@@ -101,6 +102,7 @@ export function CollectionDetailPanel({
   runResult,
   onRun,
   onEdit,
+  onDelete,
   onToggleAutoStart,
   onRefresh,
   onDismissRunResult,
@@ -145,6 +147,9 @@ export function CollectionDetailPanel({
               </Button>
               <Button onClick={onEdit} variant="secondary" size="sm">
                 ✎ Edit
+              </Button>
+              <Button onClick={onDelete} variant="danger" size="sm">
+                🗑 Delete
               </Button>
               <Button
                 onClick={onToggleAutoStart}
