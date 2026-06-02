@@ -6,6 +6,12 @@ const electronAPI = {
   scanProcesses: (): Promise<App[]> =>
     ipcRenderer.invoke('process:scan'),
 
+  launchApp: (path: string): Promise<void> =>
+    ipcRenderer.invoke('process:launch', path),
+
+  shutDownApp: (path: string): Promise<void> =>
+    ipcRenderer.invoke('process:shutdown', path),
+
   // Collections
   getCollections: (): Promise<Collection[]> =>
     ipcRenderer.invoke('collections:list'),

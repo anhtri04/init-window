@@ -297,6 +297,40 @@ class WindowsProcessService implements ProcessService {
     });
   }
 
+  async shutDownApp(executablePath: string): Promise<void> {
+    const psPath = executablePath.replace(/'/g, "''");
+    const psScript = `
+      $ErrorActionPreference = 'Stop'
+      $pids = Get-CimInstance Win32_Process |
+        Where-Object { $_.ExecutablePath -ieq '${psPath}' } |
+        Select-Object -ExpandProperty ProcessId
+
+      if ($pids) {
+        $pids | ConvertTo-Json -Compress
+      }
+    `;
+
+    const psBase64 = Buffer.from(psScript, 'utf16le').toString('base64');
+    const command = `powershell.exe -NoProfile -ExecutionPolicy Bypass -EncodedCommand ${psBase64}`;
+    const { stdout } = await execAsync(command, { timeout: 10000 });
+    const trimmed = stdout.trim();
+
+    if (!trimmed) {
+      console.log(`[shutDownApp] No running process found for: ${executablePath}`);
+      return;
+    }
+
+    const parsed = JSON.parse(trimmed) as number | number[];
+    const pids = (Array.isArray(parsed) ? parsed : [parsed])
+      .filter((pid) => Number.isFinite(pid) && pid > 0);
+
+    await Promise.all(
+      pids.map((pid) => execAsync(`taskkill /PID ${pid} /T /F`, { timeout: 10000 }))
+    );
+
+    console.log(`[shutDownApp] Stopped ${pids.length} process(es) for: ${executablePath}`);
+  }
+
   async extractIcon(executablePath: string): Promise<string | undefined> {
     try {
       // Ensure cache directory exists

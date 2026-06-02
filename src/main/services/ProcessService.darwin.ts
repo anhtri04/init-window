@@ -386,6 +386,23 @@ class DarwinProcessService implements ProcessService {
     });
   }
 
+  async shutDownApp(executablePath: string): Promise<void> {
+    const escapedPath = executablePath.replace(/'/g, `'\\''`);
+
+    try {
+      await execAsync(`pkill -f '${escapedPath}'`, { timeout: 10000 });
+      console.log(`[shutDownApp] Stopped process(es) for: ${executablePath}`);
+    } catch (error: any) {
+      // pkill exits with code 1 when no process matched.
+      if (error?.code === 1) {
+        console.log(`[shutDownApp] No running process found for: ${executablePath}`);
+        return;
+      }
+
+      throw error;
+    }
+  }
+
   async extractIcon(executablePath: string): Promise<string | undefined> {
     try {
       // Only extract icons for app bundles

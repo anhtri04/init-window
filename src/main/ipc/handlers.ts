@@ -20,9 +20,17 @@ if (process.platform === 'darwin') {
 }
 
 export function registerIpcHandlers(): void {
-  // Process scanning
+  // Process control
   ipcMain.handle('process:scan', async () => {
     return processService.scanRunningProcesses();
+  });
+
+  ipcMain.handle('process:launch', async (_, executablePath: string) => {
+    return processService.launchApp(executablePath);
+  });
+
+  ipcMain.handle('process:shutdown', async (_, executablePath: string) => {
+    return processService.shutDownApp(executablePath);
   });
 
   // Collections CRUD

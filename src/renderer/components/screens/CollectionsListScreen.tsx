@@ -3,7 +3,7 @@ import { useAppContext } from '../../context/AppContext';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 import { CollectionDetailPanel } from '../collections/CollectionDetailPanel';
 import { CollectionSidebar } from '../collections/CollectionSidebar';
-import { CollectionMetric, RunResult } from '../../../shared/types';
+import { AppMetric, CollectionMetric, RunResult } from '../../../shared/types';
 
 interface CollectionsListScreenProps {
   onEdit: (id: string) => void;
@@ -87,6 +87,16 @@ export function CollectionsListScreen({ onEdit }: CollectionsListScreenProps) {
     } finally {
       setRunningId(null);
     }
+  };
+
+  const handleStartApp = async (app: AppMetric) => {
+    await window.electron.launchApp(app.path);
+    await refreshMetrics(true);
+  };
+
+  const handleStopApp = async (app: AppMetric) => {
+    await window.electron.shutDownApp(app.path);
+    await refreshMetrics(true);
   };
 
   const handleDelete = async (id: string) => {
@@ -180,6 +190,8 @@ export function CollectionsListScreen({ onEdit }: CollectionsListScreenProps) {
         onDelete={() => selectedCollection && handleDelete(selectedCollection.id)}
         onToggleAutoStart={() => selectedCollection && handleToggleAutoStart(selectedCollection.id)}
         onRefresh={() => refreshMetrics(true)}
+        onStartApp={handleStartApp}
+        onStopApp={handleStopApp}
         onDismissRunResult={() => setRunResult(null)}
       />
     </div>

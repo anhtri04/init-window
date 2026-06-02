@@ -14,6 +14,8 @@ interface CollectionDetailPanelProps {
   onDelete: () => void;
   onToggleAutoStart: () => void;
   onRefresh: () => void;
+  onStartApp: (app: AppMetric) => void;
+  onStopApp: (app: AppMetric) => void;
   onDismissRunResult: () => void;
 }
 
@@ -54,23 +56,50 @@ function MetricCard({ label, value, helper }: { label: string; value: string; he
   );
 }
 
-function AppIcon({ app }: { app: AppMetric }) {
+function AppIcon({
+  app,
+  onStart,
+  onStop,
+}: {
+  app: AppMetric;
+  onStart: () => void;
+  onStop: () => void;
+}) {
+  const isRunning = app.isRunning;
+
   return (
-    <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-brand-green-soft text-sm font-semibold text-brand-green-dark">
+    <button
+      type="button"
+      onClick={isRunning ? onStop : onStart}
+      className="group relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-brand-green-soft text-sm font-semibold text-brand-green-dark focus:outline-hidden focus:ring-2 focus:ring-brand-green/35"
+      title={isRunning ? `Stop ${app.name}` : `Start ${app.name}`}
+      aria-label={isRunning ? `Stop ${app.name}` : `Start ${app.name}`}
+    >
       {app.icon ? (
         <img src={`file://${app.icon}`} alt="" className="h-full w-full object-contain" />
       ) : (
         app.name.charAt(0).toUpperCase()
       )}
-    </div>
+      <span className="absolute inset-0 hidden items-center justify-center bg-brand-teal-deep/85 text-[10px] font-bold text-on-dark group-hover:flex">
+        {isRunning ? '■' : '▶'}
+      </span>
+    </button>
   );
 }
 
-function AppMetricRow({ app }: { app: AppMetric }) {
+function AppMetricRow({
+  app,
+  onStartApp,
+  onStopApp,
+}: {
+  app: AppMetric;
+  onStartApp: (app: AppMetric) => void;
+  onStopApp: (app: AppMetric) => void;
+}) {
   return (
     <div className="grid grid-cols-[minmax(180px,1fr)_110px_90px_100px_110px_90px] items-center gap-3 border-t border-hairline-soft px-4 py-3 text-sm first:border-t-0">
       <div className="flex min-w-0 items-center gap-3">
-        <AppIcon app={app} />
+        <AppIcon app={app} onStart={() => onStartApp(app)} onStop={() => onStopApp(app)} />
         <div className="min-w-0">
           <p className="truncate font-semibold text-ink">{app.name}</p>
           <p className="truncate text-xs text-steel">{app.path}</p>
@@ -105,6 +134,8 @@ export function CollectionDetailPanel({
   onDelete,
   onToggleAutoStart,
   onRefresh,
+  onStartApp,
+  onStopApp,
   onDismissRunResult,
 }: CollectionDetailPanelProps) {
   if (!collection) {
@@ -239,7 +270,14 @@ export function CollectionDetailPanel({
                   This collection has no apps yet.
                 </div>
               ) : (
-                apps.map((app) => <AppMetricRow key={app.appId} app={app} />)
+                apps.map((app) => (
+                  <AppMetricRow
+                    key={app.appId}
+                    app={app}
+                    onStartApp={onStartApp}
+                    onStopApp={onStopApp}
+                  />
+                ))
               )}
             </div>
           </section>
