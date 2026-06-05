@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { App } from '../../../shared/types';
+import type { App, Collection } from '../../../shared/types';
 import { useProcessScanner } from '../../hooks/useProcessScanner';
 import { useAppContext } from '../../context/AppContext';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
@@ -8,7 +8,8 @@ import { AppListItem } from '../shared/AppListItem';
 import { SkeletonAppListItem } from '../shared/SkeletonAppListItem';
 
 interface CaptureAndBuildScreenProps {
-  onBuildComplete: () => void;
+  onBuildComplete: (collection: Collection) => void;
+  onCancel?: () => void;
 }
 
 const USER_APP_EXCEPTIONS = [
@@ -53,7 +54,7 @@ function isUserApp(app: App): boolean {
   );
 }
 
-export function CaptureAndBuildScreen({ onBuildComplete }: CaptureAndBuildScreenProps) {
+export function CaptureAndBuildScreen({ onBuildComplete, onCancel }: CaptureAndBuildScreenProps) {
   const { apps, scanning, scan, clear } = useProcessScanner();
   const { collections, createCollection } = useAppContext();
   const [selectedApps, setSelectedApps] = useState<Set<string>>(new Set());
@@ -84,20 +85,30 @@ export function CaptureAndBuildScreen({ onBuildComplete }: CaptureAndBuildScreen
     if (selected.length === 0) return;
 
     const name = collectionName.trim() || `Collection ${collections.length + 1}`;
-    await createCollection(name, selected);
+    const collection = await createCollection(name, selected);
 
     setSelectedApps(new Set());
     setCollectionName('');
     setFilterUserApps(false);
     clear();
-    onBuildComplete();
+    onBuildComplete(collection);
   };
 
   useKeyboardShortcuts(
     [
       { key: ' ', action: () => !scanning && scan(), description: 'Scan' },
       { key: 'a', ctrl: true, action: handleSelectAll, description: 'Select all' },
-      { key: 'Escape', action: () => setSelectedApps(new Set()), description: 'Deselect' },
+      {
+        key: 'Escape',
+        action: () => {
+          if (selectedApps.size > 0) {
+            setSelectedApps(new Set());
+            return;
+          }
+          onCancel?.();
+        },
+        description: onCancel ? 'Deselect or close' : 'Deselect',
+      },
       { key: 'Enter', action: handleBuild, description: 'Build' },
     ],
     true
@@ -185,6 +196,12 @@ export function CaptureAndBuildScreen({ onBuildComplete }: CaptureAndBuildScreen
         )}
 
         <div className="flex gap-2">
+          {onCancel && (
+            <Button onClick={onCancel} variant="secondary">
+              Cancel
+            </Button>
+          )}
+
           <Button onClick={scan} disabled={scanning} variant="secondary" className="flex-1">
             {scanning ? 'Scanning...' : apps.length > 0 ? 'Rescan' : 'Capture Running Apps'}
           </Button>

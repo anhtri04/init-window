@@ -1,11 +1,13 @@
 import React from 'react';
-import { Collection, CollectionMetric } from '../../../shared/types';
+import type { Collection, CollectionMetric } from '../../../shared/types';
+import { Button } from '../shared/Button';
 
 interface CollectionSidebarProps {
   collections: Collection[];
   selectedId?: string;
   selectedMetric: CollectionMetric | null;
   onSelect: (id: string) => void;
+  onCapture?: () => void;
 }
 
 function formatMemory(memoryMB?: number): string {
@@ -18,18 +20,27 @@ export function CollectionSidebar({
   selectedId,
   selectedMetric,
   onSelect,
+  onCapture,
 }: CollectionSidebarProps) {
   return (
     <aside className="flex h-full w-[20%] min-w-[260px] flex-col border-r border-hairline bg-canvas">
-      <div className="bg-brand-teal-deep border-b border-hairline px-4 py-4 text-on-dark">
+      <div className="border-b border-hairline bg-brand-teal-deep px-4 py-4 text-on-dark">
         <p className="text-xs font-semibold uppercase tracking-[0.14em] text-steel">Collections</p>
         <h2 className="mt-1 text-xl font-semibold tracking-[-0.3px]">Workspace list</h2>
       </div>
 
+      {onCapture && (
+        <div className="border-b border-hairline bg-canvas p-3">
+          <Button onClick={onCapture} className="w-full">
+            + Capture
+          </Button>
+        </div>
+      )}
+
       <div className="flex-1 overflow-y-auto p-3">
         {collections.length === 0 ? (
           <div className="rounded-xl border border-hairline bg-surface-soft p-4 text-sm text-slate">
-            No collections yet. Go to Capture to create one.
+            No collections yet. Use Capture to create one.
           </div>
         ) : (
           <div className="space-y-2">
