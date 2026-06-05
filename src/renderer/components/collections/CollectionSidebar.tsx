@@ -23,7 +23,7 @@ export function CollectionSidebar({
   onCapture,
 }: CollectionSidebarProps) {
   return (
-    <aside className="flex h-full w-[20%] min-w-[260px] flex-col border-r border-hairline bg-canvas">
+    <aside className="flex h-full w-[clamp(220px,24vw,320px)] shrink-0 flex-col border-r border-hairline bg-canvas">
       <div className="border-b border-hairline bg-brand-teal-deep px-4 py-4 text-on-dark">
         <p className="text-xs font-semibold uppercase tracking-[0.14em] text-steel">Collections</p>
         <h2 className="mt-1 text-xl font-semibold tracking-[-0.3px]">Workspace list</h2>

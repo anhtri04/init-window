@@ -218,7 +218,7 @@ export function CollectionDetailPanel({
             </div>
           )}
 
-          <div className="grid grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <MetricCard
               label="Running"
               value={`${metric?.runningApps ?? 0} / ${collection.apps.length}`}
@@ -255,30 +255,34 @@ export function CollectionDetailPanel({
               </div>
             </div>
 
-            <div className="grid grid-cols-[minmax(180px,1fr)_110px_90px_100px_110px_90px] gap-3 border-t border-hairline bg-surface px-4 py-2 text-xs font-semibold uppercase tracking-[0.1em] text-steel">
-              <span>App</span>
-              <span>Status</span>
-              <span>CPU</span>
-              <span>Memory</span>
-              <span>Runtime</span>
-              <span>Processes</span>
-            </div>
-
-            <div>
-              {apps.length === 0 ? (
-                <div className="border-t border-hairline-soft px-4 py-8 text-center text-sm text-slate">
-                  This collection has no apps yet.
+            <div className="overflow-x-auto">
+              <div className="min-w-[760px]">
+                <div className="grid grid-cols-[minmax(180px,1fr)_110px_90px_100px_110px_90px] gap-3 border-t border-hairline bg-surface px-4 py-2 text-xs font-semibold uppercase tracking-[0.1em] text-steel">
+                  <span>App</span>
+                  <span>Status</span>
+                  <span>CPU</span>
+                  <span>Memory</span>
+                  <span>Runtime</span>
+                  <span>Processes</span>
                 </div>
-              ) : (
-                apps.map((app) => (
-                  <AppMetricRow
-                    key={app.appId}
-                    app={app}
-                    onStartApp={onStartApp}
-                    onStopApp={onStopApp}
-                  />
-                ))
-              )}
+
+                <div>
+                  {apps.length === 0 ? (
+                    <div className="border-t border-hairline-soft px-4 py-8 text-center text-sm text-slate">
+                      This collection has no apps yet.
+                    </div>
+                  ) : (
+                    apps.map((app) => (
+                      <AppMetricRow
+                        key={app.appId}
+                        app={app}
+                        onStartApp={onStartApp}
+                        onStopApp={onStopApp}
+                      />
+                    ))
+                  )}
+                </div>
+              </div>
             </div>
           </section>
         </div>
