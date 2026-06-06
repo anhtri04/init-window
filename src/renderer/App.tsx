@@ -1,44 +1,12 @@
-import React, { useCallback, useState } from 'react';
+import { useCallback, useState } from 'react';
 import type { Collection } from '../shared/types';
 import { AppProvider } from './context/AppContext';
 import { useCollectionDashboard } from './hooks/useCollectionDashboard';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { CollectionDetailPanel } from './components/collections/CollectionDetailPanel';
 import { CollectionSidebar } from './components/collections/CollectionSidebar';
-import { CaptureAndBuildScreen } from './components/screens/CaptureAndBuildScreen';
+import { CaptureCollectionModal } from './components/capture/CaptureCollectionModal';
 import { EditCollectionScreen } from './components/screens/EditCollectionScreen';
-
-interface CaptureModalProps {
-  children: React.ReactNode;
-  onClose: () => void;
-}
-
-function CaptureModal({ children, onClose }: CaptureModalProps) {
-  return (
-    <div
-      className="fixed inset-0 z-50 flex bg-brand-teal-deep/60 p-4 backdrop-blur-[1px] sm:p-6"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Capture running apps"
-      onMouseDown={onClose}
-    >
-      <div
-        className="relative flex h-full min-h-0 w-full min-w-0 overflow-hidden rounded-xl border border-hairline bg-surface-soft shadow-[rgba(0,30,43,0.24)_0px_24px_60px_0px]"
-        onMouseDown={(event) => event.stopPropagation()}
-      >
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute right-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-hairline-dark bg-canvas/10 text-lg font-semibold text-on-dark transition-colors hover:bg-canvas/20 focus:outline-hidden focus:ring-2 focus:ring-brand-green/35"
-          aria-label="Close capture"
-        >
-          ×
-        </button>
-        {children}
-      </div>
-    </div>
-  );
-}
 
 function AppContent() {
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -190,14 +158,11 @@ function AppContent() {
         )}
       </div>
 
-      {captureOpen && (
-        <CaptureModal onClose={() => setCaptureOpen(false)}>
-          <CaptureAndBuildScreen
-            onBuildComplete={handleCaptureComplete}
-            onCancel={() => setCaptureOpen(false)}
-          />
-        </CaptureModal>
-      )}
+      <CaptureCollectionModal
+        open={captureOpen}
+        onComplete={handleCaptureComplete}
+        onClose={() => setCaptureOpen(false)}
+      />
     </div>
   );
 }

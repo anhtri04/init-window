@@ -6,55 +6,15 @@ import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 import { Button } from '../shared/Button';
 import { AppListItem } from '../shared/AppListItem';
 import { SkeletonAppListItem } from '../shared/SkeletonAppListItem';
+import { isUserApp } from './captureFilters';
 
-interface CaptureAndBuildScreenProps {
-  onBuildComplete: (collection: Collection) => void;
-  onCancel?: () => void;
+interface CaptureCollectionModalProps {
+  open: boolean;
+  onComplete: (collection: Collection) => void;
+  onClose: () => void;
 }
 
-const USER_APP_EXCEPTIONS = [
-  'visual studio code',
-  'vscode',
-  'visual studio',
-  'azure data studio',
-  'sql server management studio',
-  'ssms',
-  'windows terminal',
-  'powershell',
-  'powertoys',
-  'dotnet',
-  'microsoft edge',
-  'microsoft teams',
-  'skype',
-  'outlook',
-  'onenote',
-  'microsoft to do',
-  'microsoft whiteboard',
-  'onedrive',
-  'xbox',
-  'minecraft',
-];
-
-function isUserApp(app: App): boolean {
-  const lowerName = app.name.toLowerCase();
-  const lowerPath = app.path.toLowerCase();
-
-  const isException = USER_APP_EXCEPTIONS.some(
-    (exception) => lowerName.includes(exception) || lowerPath.includes(exception)
-  );
-
-  if (isException) return true;
-
-  return (
-    !lowerPath.includes('microsoft') &&
-    !lowerPath.includes('windows') &&
-    !lowerPath.startsWith('c:\\windows') &&
-    !lowerPath.startsWith('c:\\programdata') &&
-    !lowerName.startsWith('windows')
-  );
-}
-
-export function CaptureAndBuildScreen({ onBuildComplete, onCancel }: CaptureAndBuildScreenProps) {
+export function CaptureCollectionModal({ open, onComplete, onClose }: CaptureCollectionModalProps) {
   const { apps, scanning, scan, clear } = useProcessScanner();
   const { collections, createCollection } = useAppContext();
   const [selectedApps, setSelectedApps] = useState<Set<string>>(new Set());
@@ -91,7 +51,7 @@ export function CaptureAndBuildScreen({ onBuildComplete, onCancel }: CaptureAndB
     setCollectionName('');
     setFilterUserApps(false);
     clear();
-    onBuildComplete(collection);
+    onComplete(collection);
   };
 
   useKeyboardShortcuts(
@@ -105,27 +65,50 @@ export function CaptureAndBuildScreen({ onBuildComplete, onCancel }: CaptureAndB
             setSelectedApps(new Set());
             return;
           }
-          onCancel?.();
+          onClose();
         },
-        description: onCancel ? 'Deselect or close' : 'Deselect',
+        description: 'Deselect or close',
       },
       { key: 'Enter', action: handleBuild, description: 'Build' },
     ],
-    true
+    open
   );
 
+  if (!open) {
+    return null;
+  }
+
   return (
-    <div className="flex h-full flex-col">
-      <div className="bg-brand-teal-deep px-5 pb-6 pt-5 text-on-dark">
-        <div className="mb-3 inline-flex rounded-full bg-brand-green-soft px-3 py-1 text-xs font-semibold text-brand-green-dark">
-          Workspace capture
+    <div
+      className="fixed inset-0 z-50 flex bg-brand-teal-deep/60 p-4 backdrop-blur-[1px] sm:p-6"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Capture running apps"
+      onMouseDown={onClose}
+    >
+      <div
+        className="relative flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden rounded-xl border border-hairline bg-surface-soft shadow-[rgba(0,30,43,0.24)_0px_24px_60px_0px]"
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute right-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-hairline-dark bg-canvas/10 text-lg font-semibold text-on-dark transition-colors hover:bg-canvas/20 focus:outline-hidden focus:ring-2 focus:ring-brand-green/35"
+          aria-label="Close capture"
+        >
+          ×
+        </button>
+
+        <div className="bg-brand-teal-deep px-5 pb-5 pt-5 text-on-dark">
+          <div className="mb-3 inline-flex rounded-full bg-brand-green-soft px-3 py-1 text-xs font-semibold text-brand-green-dark">
+            Workspace capture
+          </div>
+          <h1 className="text-2xl font-medium leading-tight tracking-[-0.5px]">Capture running apps</h1>
+          <p className="mt-2 max-w-xl text-sm leading-6 text-on-dark-muted">
+            Scan your current desktop, select the apps that belong together, and save them as a
+            launchable collection.
+          </p>
         </div>
-        <h1 className="text-3xl font-medium leading-tight tracking-[-0.5px]">Capture running apps</h1>
-        <p className="mt-2 max-w-xl text-sm leading-6 text-on-dark-muted">
-          Scan your current desktop, select the apps that belong together, and save them as a
-          launchable collection.
-        </p>
-      </div>
 
       <div className="flex-1 overflow-y-auto p-4">
         {scanning && apps.length === 0 ? (
@@ -184,7 +167,7 @@ export function CaptureAndBuildScreen({ onBuildComplete, onCancel }: CaptureAndB
         )}
       </div>
 
-      <div className="space-y-3 border-t border-hairline bg-canvas p-4">
+        <div className="space-y-3 border-t border-hairline bg-canvas p-4">
         {apps.length > 0 && (
           <input
             type="text"
@@ -196,11 +179,9 @@ export function CaptureAndBuildScreen({ onBuildComplete, onCancel }: CaptureAndB
         )}
 
         <div className="flex gap-2">
-          {onCancel && (
-            <Button onClick={onCancel} variant="secondary">
-              Cancel
-            </Button>
-          )}
+          <Button onClick={onClose} variant="secondary">
+            Cancel
+          </Button>
 
           <Button onClick={scan} disabled={scanning} variant="secondary" className="flex-1">
             {scanning ? 'Scanning...' : apps.length > 0 ? 'Rescan' : 'Capture Running Apps'}
@@ -212,6 +193,7 @@ export function CaptureAndBuildScreen({ onBuildComplete, onCancel }: CaptureAndB
             </Button>
           )}
         </div>
+      </div>
       </div>
     </div>
   );
