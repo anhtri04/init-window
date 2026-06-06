@@ -80,14 +80,14 @@ export function CaptureCollectionModal({ open, onComplete, onClose }: CaptureCol
 
   return (
     <div
-      className="fixed inset-0 z-50 flex bg-brand-teal-deep/60 p-4 backdrop-blur-[1px] sm:p-6"
+      className="fixed inset-0 z-50 flex justify-center bg-brand-teal-deep/60 p-4 backdrop-blur-[1px] sm:p-6"
       role="dialog"
       aria-modal="true"
       aria-label="Capture running apps"
       onMouseDown={onClose}
     >
       <div
-        className="relative flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden rounded-xl border border-hairline bg-surface-soft shadow-[rgba(0,30,43,0.24)_0px_24px_60px_0px]"
+        className="relative flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden rounded-xl border border-hairline bg-surface-soft shadow-[rgba(0,30,43,0.24)_0px_24px_60px_0px] sm:w-1/2"
         onMouseDown={(event) => event.stopPropagation()}
       >
         <button
