@@ -1,12 +1,14 @@
-import { app } from 'electron';
+import { app, type App as ElectronApp } from 'electron';
 import { AutoStartService } from './AutoStartService.interface';
 
-class DarwinAutoStartService implements AutoStartService {
+export class DarwinAutoStartService implements AutoStartService {
+  constructor(private electronApp: ElectronApp = app) {}
+
   async enable(): Promise<void> {
     try {
       // Use Electron's built-in API for macOS login items
       // This creates a LaunchAgent plist in ~/Library/LaunchAgents/
-      app.setLoginItemSettings({
+      this.electronApp.setLoginItemSettings({
         openAtLogin: true,
         openAsHidden: true, // Open in background (tray mode)
         args: ['--auto-start'],
@@ -21,7 +23,7 @@ class DarwinAutoStartService implements AutoStartService {
   async disable(): Promise<void> {
     try {
       // Disable auto-start by setting openAtLogin to false
-      app.setLoginItemSettings({
+      this.electronApp.setLoginItemSettings({
         openAtLogin: false,
       });
       console.log('[AutoStart] Disabled auto-start for macOS');
@@ -34,7 +36,7 @@ class DarwinAutoStartService implements AutoStartService {
   async isEnabled(): Promise<boolean> {
     try {
       // Check the current login item settings
-      const settings = app.getLoginItemSettings();
+      const settings = this.electronApp.getLoginItemSettings();
       return settings.openAtLogin;
     } catch (error) {
       console.error('[AutoStart] Failed to check auto-start status:', error);

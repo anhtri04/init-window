@@ -7,7 +7,7 @@ import os from 'os';
 import crypto from 'crypto';
 import { App, AppSettings } from '../../shared/types';
 import { ProcessService } from './ProcessService.interface';
-import { storageService } from './StorageService';
+import { storageService, StorageService } from './StorageService';
 
 const execAsync = promisify(exec);
 
@@ -97,7 +97,29 @@ const EXCLUDED_PATHS = [
   'C:\\Windows\\explorer.exe', // Explorer is a special case - it's the shell
 ];
 
-class WindowsProcessService implements ProcessService {
+export interface WindowsProcessServiceDeps {
+  execCommand?: typeof execAsync;
+  spawnProcess?: typeof spawn;
+  fileSystem?: Pick<typeof fs, 'existsSync' | 'mkdirSync'>;
+  storage?: Pick<StorageService, 'getSettings'>;
+  iconCacheDir?: string;
+}
+
+export class WindowsProcessService implements ProcessService {
+  private execCommand: typeof execAsync;
+  private spawnProcess: typeof spawn;
+  private fileSystem: Pick<typeof fs, 'existsSync' | 'mkdirSync'>;
+  private storage: Pick<StorageService, 'getSettings'>;
+  private iconCacheDir: string;
+
+  constructor(deps: WindowsProcessServiceDeps = {}) {
+    this.execCommand = deps.execCommand ?? execAsync;
+    this.spawnProcess = deps.spawnProcess ?? spawn;
+    this.fileSystem = deps.fileSystem ?? fs;
+    this.storage = deps.storage ?? storageService;
+    this.iconCacheDir = deps.iconCacheDir ?? ICON_CACHE_DIR;
+  }
+
     /**
    * Normalize app name by removing common suffixes for helper processes
    * This helps group related processes (e.g., "chrome" and "chrome_helper" both become "chrome")
@@ -179,10 +201,10 @@ class WindowsProcessService implements ProcessService {
   async scanRunningProcesses(): Promise<App[]> {
     try {
       // Get user settings for exclusions
-      const userSettings = storageService.getSettings();
+      const userSettings = this.storage.getSettings();
 
       // Use WMIC to get process name and executable path
-      const { stdout } = await execAsync(
+      const { stdout } = await this.execCommand(
         'wmic process get Name,ExecutablePath /FORMAT:CSV',
         { maxBuffer: 10 * 1024 * 1024 }
       );
@@ -198,7 +220,7 @@ class WindowsProcessService implements ProcessService {
         const name = parts[2]?.trim();
 
         if (!executablePath || !name) continue;
-        if (!fs.existsSync(executablePath)) continue;
+        if (!this.fileSystem.existsSync(executablePath)) continue;
 
         // Apply hybrid exclusion filtering
         if (this.isExcludedProcess(name, executablePath, userSettings)) {
@@ -259,7 +281,7 @@ class WindowsProcessService implements ProcessService {
   async isProcessRunning(executablePath: string): Promise<boolean> {
     try {
       const processName = path.basename(executablePath);
-      const { stdout } = await execAsync(
+      const { stdout } = await this.execCommand(
         `tasklist /FI "IMAGENAME eq ${processName}" /NH`
       );
       return stdout.toLowerCase().includes(processName.toLowerCase());
@@ -272,7 +294,7 @@ class WindowsProcessService implements ProcessService {
     return new Promise((resolve, reject) => {
       console.log(`[launchApp] Starting: ${executablePath}`);
 
-      const child = spawn('cmd', ['/c', 'start', '', executablePath], {
+      const child = this.spawnProcess('cmd', ['/c', 'start', '', executablePath], {
         detached: true,
         stdio: 'ignore',
         windowsHide: true,
@@ -312,7 +334,7 @@ class WindowsProcessService implements ProcessService {
 
     const psBase64 = Buffer.from(psScript, 'utf16le').toString('base64');
     const command = `powershell.exe -NoProfile -ExecutionPolicy Bypass -EncodedCommand ${psBase64}`;
-    const { stdout } = await execAsync(command, { timeout: 10000 });
+    const { stdout } = await this.execCommand(command, { timeout: 10000 });
     const trimmed = stdout.trim();
 
     if (!trimmed) {
@@ -325,7 +347,7 @@ class WindowsProcessService implements ProcessService {
       .filter((pid) => Number.isFinite(pid) && pid > 0);
 
     await Promise.all(
-      pids.map((pid) => execAsync(`taskkill /PID ${pid} /T /F`, { timeout: 10000 }))
+      pids.map((pid) => this.execCommand(`taskkill /PID ${pid} /T /F`, { timeout: 10000 }))
     );
 
     console.log(`[shutDownApp] Stopped ${pids.length} process(es) for: ${executablePath}`);
@@ -334,16 +356,16 @@ class WindowsProcessService implements ProcessService {
   async extractIcon(executablePath: string): Promise<string | undefined> {
     try {
       // Ensure cache directory exists
-      if (!fs.existsSync(ICON_CACHE_DIR)) {
-        fs.mkdirSync(ICON_CACHE_DIR, { recursive: true });
+      if (!this.fileSystem.existsSync(this.iconCacheDir)) {
+        this.fileSystem.mkdirSync(this.iconCacheDir, { recursive: true });
       }
 
       // Create unique filename based on executable path
       const hash = crypto.createHash('md5').update(executablePath).digest('hex');
-      const iconPath = path.join(ICON_CACHE_DIR, `${hash}.png`);
+      const iconPath = path.join(this.iconCacheDir, `${hash}.png`);
 
       // Return cached icon if already exists
-      if (fs.existsSync(iconPath)) {
+      if (this.fileSystem.existsSync(iconPath)) {
         return iconPath;
       }
 
@@ -381,7 +403,7 @@ class WindowsProcessService implements ProcessService {
       let stdout: string;
       let stderr: string;
       try {
-        const result = await execAsync(command, { timeout: 10000 });
+        const result = await this.execCommand(command, { timeout: 10000 });
         stdout = result.stdout;
         stderr = result.stderr;
       } catch (execError: any) {
@@ -395,11 +417,11 @@ class WindowsProcessService implements ProcessService {
       }
 
       const result = stdout.trim();
-      if (result === 'SUCCESS' && fs.existsSync(iconPath)) {
+      if (result === 'SUCCESS' && this.fileSystem.existsSync(iconPath)) {
         console.log(`[extractIcon] SUCCESS for: ${path.basename(executablePath)}`);
         return iconPath;
       } else {
-        console.warn(`[extractIcon] Failed for ${executablePath}, result: "${result}", file exists: ${fs.existsSync(iconPath)}`);
+        console.warn(`[extractIcon] Failed for ${executablePath}, result: "${result}", file exists: ${this.fileSystem.existsSync(iconPath)}`);
         return undefined;
       }
     } catch (error) {

@@ -3,10 +3,12 @@ import { globalShortcut, BrowserWindow } from 'electron';
 export class GlobalShortcutService {
   private mainWindow: BrowserWindow | null = null;
 
+  constructor(private shortcuts: Pick<typeof globalShortcut, 'register' | 'unregisterAll'> = globalShortcut) {}
+
   init(window: BrowserWindow) {
     this.mainWindow = window;
 
-    const registered = globalShortcut.register('CommandOrControl+Shift+W', () => {
+    const registered = this.shortcuts.register('CommandOrControl+Shift+W', () => {
       this.showWindow();
     });
 
@@ -24,7 +26,7 @@ export class GlobalShortcutService {
   }
 
   destroy() {
-    globalShortcut.unregisterAll();
+    this.shortcuts.unregisterAll();
   }
 }
 

@@ -12,11 +12,11 @@ const schema = {
   },
 };
 
-class StorageService {
+export class StorageService {
   private store: Store<AppData>;
 
-  constructor() {
-    this.store = new Store<AppData>({
+  constructor(store?: Store<AppData>) {
+    this.store = store ?? new Store<AppData>({
       name: 'data',
       schema,
     });

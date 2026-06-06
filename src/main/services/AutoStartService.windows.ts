@@ -1,25 +1,27 @@
-import { app } from 'electron';
+import { app, type App as ElectronApp } from 'electron';
 import { AutoStartService } from './AutoStartService.interface';
 
-class WindowsAutoStartService implements AutoStartService {
+export class WindowsAutoStartService implements AutoStartService {
+  constructor(private electronApp: ElectronApp = app) {}
+
   async enable(): Promise<void> {
-    app.setLoginItemSettings({
+    this.electronApp.setLoginItemSettings({
       openAtLogin: true,
       args: ['--auto-start'],
-      path: app.getPath('exe'),
+      path: this.electronApp.getPath('exe'),
     });
   }
 
   async disable(): Promise<void> {
-    app.setLoginItemSettings({
+    this.electronApp.setLoginItemSettings({
       openAtLogin: false,
     });
   }
 
   async isEnabled(): Promise<boolean> {
-    const settings = app.getLoginItemSettings({
+    const settings = this.electronApp.getLoginItemSettings({
       args: ['--auto-start'],
-      path: app.getPath('exe'),
+      path: this.electronApp.getPath('exe'),
     });
     return settings.openAtLogin;
   }

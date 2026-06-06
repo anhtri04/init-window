@@ -1,16 +1,24 @@
 import { v4 as uuidv4 } from 'uuid';
 import fs from 'fs';
 import { Collection, App, RunResult } from '../../shared/types';
-import { storageService } from './StorageService';
+import { ProcessService } from './ProcessService.interface';
+import { storageService, StorageService } from './StorageService';
 import { processService } from './ProcessService.windows';
 
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-class CollectionService {
+export class CollectionService {
+  constructor(
+    private storage: Pick<StorageService, 'getCollections' | 'saveCollections'> = storageService,
+    private process: Pick<ProcessService, 'isProcessRunning' | 'launchApp'> = processService,
+    private fileSystem: Pick<typeof fs, 'existsSync'> = fs,
+    private delayFn: (ms: number) => Promise<void> = delay
+  ) {}
+
   list(): Collection[] {
-    return storageService.getCollections();
+    return this.storage.getCollections();
   }
 
   get(id: string): Collection | undefined {
@@ -30,7 +38,7 @@ class CollectionService {
     };
 
     collections.push(collection);
-    storageService.saveCollections(collections);
+    this.storage.saveCollections(collections);
     return collection;
   }
 
@@ -46,7 +54,7 @@ class CollectionService {
       updatedAt: new Date().toISOString(),
     };
 
-    storageService.saveCollections(collections);
+    this.storage.saveCollections(collections);
     return collections[index];
   }
 
@@ -56,7 +64,7 @@ class CollectionService {
 
     if (filtered.length === collections.length) return false;
 
-    storageService.saveCollections(filtered);
+    this.storage.saveCollections(filtered);
     return true;
   }
 
@@ -72,7 +80,7 @@ class CollectionService {
       c.updatedAt = new Date().toISOString();
     });
 
-    storageService.saveCollections(collections);
+    this.storage.saveCollections(collections);
     return collections[index];
   }
 
@@ -81,7 +89,7 @@ class CollectionService {
     collections.forEach((c) => {
       c.isAutoStart = false;
     });
-    storageService.saveCollections(collections);
+    this.storage.saveCollections(collections);
   }
 
   getAutoStartCollection(): Collection | undefined {
@@ -103,13 +111,13 @@ class CollectionService {
 
     for (const app of collection.apps) {
       // Check if executable exists
-      if (!fs.existsSync(app.path)) {
+      if (!this.fileSystem.existsSync(app.path)) {
         result.failed.push({ app: app.name, reason: 'Executable not found' });
         continue;
       }
 
       // Check if already running
-      const isRunning = await processService.isProcessRunning(app.path);
+      const isRunning = await this.process.isProcessRunning(app.path);
       if (isRunning) {
         result.skipped.push({ app: app.name, reason: 'Already running' });
         continue;
@@ -117,9 +125,9 @@ class CollectionService {
 
       // Launch
       try {
-        await processService.launchApp(app.path);
+        await this.process.launchApp(app.path);
         result.launched.push(app.name);
-        await delay(500); // Prevent system overload
+        await this.delayFn(500); // Prevent system overload
       } catch (error) {
         result.failed.push({
           app: app.name,

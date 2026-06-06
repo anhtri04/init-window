@@ -7,7 +7,7 @@ import os from 'os';
 import crypto from 'crypto';
 import { App, AppSettings } from '../../shared/types';
 import { ProcessService } from './ProcessService.interface';
-import { storageService } from './StorageService';
+import { storageService, StorageService } from './StorageService';
 
 const execAsync = promisify(exec);
 
@@ -107,7 +107,29 @@ const APP_BUNDLE_PATHS = [
   path.join(os.homedir(), 'Applications'),
 ];
 
-class DarwinProcessService implements ProcessService {
+export interface DarwinProcessServiceDeps {
+  execCommand?: typeof execAsync;
+  spawnProcess?: typeof spawn;
+  fileSystem?: Pick<typeof fs, 'existsSync' | 'mkdirSync' | 'promises' | 'constants'>;
+  storage?: Pick<StorageService, 'getSettings'>;
+  iconCacheDir?: string;
+}
+
+export class DarwinProcessService implements ProcessService {
+  private execCommand: typeof execAsync;
+  private spawnProcess: typeof spawn;
+  private fileSystem: Pick<typeof fs, 'existsSync' | 'mkdirSync' | 'promises' | 'constants'>;
+  private storage: Pick<StorageService, 'getSettings'>;
+  private iconCacheDir: string;
+
+  constructor(deps: DarwinProcessServiceDeps = {}) {
+    this.execCommand = deps.execCommand ?? execAsync;
+    this.spawnProcess = deps.spawnProcess ?? spawn;
+    this.fileSystem = deps.fileSystem ?? fs;
+    this.storage = deps.storage ?? storageService;
+    this.iconCacheDir = deps.iconCacheDir ?? ICON_CACHE_DIR;
+  }
+
   /**
    * Extract bundle path from executable path
    * e.g., /Applications/Firefox.app/Contents/MacOS/firefox -> /Applications/Firefox.app
@@ -196,11 +218,11 @@ class DarwinProcessService implements ProcessService {
   async scanRunningProcesses(): Promise<App[]> {
     try {
       // Get user settings for exclusions
-      const userSettings = storageService.getSettings();
+      const userSettings = this.storage.getSettings();
 
       // Use ps command to get all processes with their command lines
       // -e: all processes, -o: output format (comm=name, args=full command line)
-      const { stdout } = await execAsync(
+      const { stdout } = await this.execCommand(
         'ps -eo comm=,args=',
         { maxBuffer: 10 * 1024 * 1024 }
       );
@@ -236,7 +258,7 @@ class DarwinProcessService implements ProcessService {
 
         // Check if file exists
         try {
-          await fs.promises.access(executablePath, fs.constants.F_OK);
+          await this.fileSystem.promises.access(executablePath, this.fileSystem.constants.F_OK);
         } catch {
           continue;
         }
@@ -332,7 +354,7 @@ class DarwinProcessService implements ProcessService {
 
       // Use pgrep to check if process is running
       // -x: exact match, -c: count (0 if not running)
-      const { stdout } = await execAsync(
+      const { stdout } = await this.execCommand(
         `pgrep -x "${processName}" | wc -l`
       );
       const count = parseInt(stdout.trim(), 10);
@@ -362,7 +384,7 @@ class DarwinProcessService implements ProcessService {
         args = [];
       }
 
-      const child = spawn(command, args, {
+      const child = this.spawnProcess(command, args, {
         detached: true,
         stdio: 'ignore',
       });
@@ -390,7 +412,7 @@ class DarwinProcessService implements ProcessService {
     const escapedPath = executablePath.replace(/'/g, `'\\''`);
 
     try {
-      await execAsync(`pkill -f '${escapedPath}'`, { timeout: 10000 });
+      await this.execCommand(`pkill -f '${escapedPath}'`, { timeout: 10000 });
       console.log(`[shutDownApp] Stopped process(es) for: ${executablePath}`);
     } catch (error: any) {
       // pkill exits with code 1 when no process matched.
@@ -411,22 +433,22 @@ class DarwinProcessService implements ProcessService {
       }
 
       // Ensure cache directory exists
-      if (!fs.existsSync(ICON_CACHE_DIR)) {
-        fs.mkdirSync(ICON_CACHE_DIR, { recursive: true });
+      if (!this.fileSystem.existsSync(this.iconCacheDir)) {
+        this.fileSystem.mkdirSync(this.iconCacheDir, { recursive: true });
       }
 
       // Create unique filename based on bundle path
       const hash = crypto.createHash('md5').update(executablePath).digest('hex');
-      const iconPath = path.join(ICON_CACHE_DIR, `${hash}.png`);
+      const iconPath = path.join(this.iconCacheDir, `${hash}.png`);
 
       // Return cached icon if already exists
-      if (fs.existsSync(iconPath)) {
+      if (this.fileSystem.existsSync(iconPath)) {
         return iconPath;
       }
 
       // Get the icon name from Info.plist using plutil
       const infoPlistPath = path.join(executablePath, 'Contents', 'Info.plist');
-      if (!fs.existsSync(infoPlistPath)) {
+      if (!this.fileSystem.existsSync(infoPlistPath)) {
         console.warn(`[extractIcon] Info.plist not found: ${infoPlistPath}`);
         return undefined;
       }
@@ -434,7 +456,7 @@ class DarwinProcessService implements ProcessService {
       // Extract CFBundleIconFile from Info.plist
       let iconName: string;
       try {
-        const { stdout } = await execAsync(
+        const { stdout } = await this.execCommand(
           `plutil -extract CFBundleIconFile raw "${infoPlistPath}"`
         );
         iconName = stdout.trim();
@@ -449,15 +471,15 @@ class DarwinProcessService implements ProcessService {
 
       // Construct the .icns file path
       const icnsPath = path.join(executablePath, 'Contents', 'Resources', `${iconName}.icns`);
-      if (!fs.existsSync(icnsPath)) {
+      if (!this.fileSystem.existsSync(icnsPath)) {
         // Try without .icns extension (some apps don't include it)
         const icnsPathNoExt = path.join(executablePath, 'Contents', 'Resources', iconName);
-        if (!fs.existsSync(icnsPathNoExt)) {
+        if (!this.fileSystem.existsSync(icnsPathNoExt)) {
           console.warn(`[extractIcon] Icon file not found: ${icnsPath}`);
           return undefined;
         }
         // Use the path without extension
-        const { stdout } = await execAsync(
+        const { stdout } = await this.execCommand(
           `sips -s format png "${icnsPathNoExt}" --out "${iconPath}"`
         );
         console.log(`[extractIcon] Converted icon (no ext): ${path.basename(executablePath)}`);
@@ -465,11 +487,11 @@ class DarwinProcessService implements ProcessService {
       }
 
       // Convert .icns to .png using sips
-      const { stdout } = await execAsync(
+      const { stdout } = await this.execCommand(
         `sips -s format png "${icnsPath}" --out "${iconPath}"`
       );
 
-      if (fs.existsSync(iconPath)) {
+      if (this.fileSystem.existsSync(iconPath)) {
         console.log(`[extractIcon] SUCCESS for: ${path.basename(executablePath)}`);
         return iconPath;
       } else {

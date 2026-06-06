@@ -1,10 +1,12 @@
 import { CollectionMetric } from '../../shared/types';
 import { MetricsService } from './MetricsService.interface';
-import { collectionService } from './CollectionService';
+import { collectionService, CollectionService } from './CollectionService';
 
-class DarwinMetricsService implements MetricsService {
+export class DarwinMetricsService implements MetricsService {
+  constructor(private collection: Pick<CollectionService, 'get'> = collectionService) {}
+
   async getCollectionMetrics(collectionId: string): Promise<CollectionMetric | null> {
-    const collection = collectionService.get(collectionId);
+    const collection = this.collection.get(collectionId);
 
     if (!collection) {
       return null;

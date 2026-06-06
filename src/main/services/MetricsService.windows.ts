@@ -3,7 +3,7 @@ import { promisify } from 'util';
 import path from 'path';
 import { AppMetric, CollectionMetric } from '../../shared/types';
 import { MetricsService } from './MetricsService.interface';
-import { collectionService } from './CollectionService';
+import { collectionService, CollectionService } from './CollectionService';
 
 const execAsync = promisify(exec);
 
@@ -17,9 +17,14 @@ interface WindowsProcessMetricRow {
   elapsedTime?: number;
 }
 
-class WindowsMetricsService implements MetricsService {
+export class WindowsMetricsService implements MetricsService {
+  constructor(
+    private collection: Pick<CollectionService, 'get'> = collectionService,
+    private execCommand: typeof execAsync = execAsync
+  ) {}
+
   async getCollectionMetrics(collectionId: string): Promise<CollectionMetric | null> {
-    const collection = collectionService.get(collectionId);
+    const collection = this.collection.get(collectionId);
 
     if (!collection) {
       return null;
@@ -108,7 +113,7 @@ class WindowsMetricsService implements MetricsService {
 
     const psBase64 = Buffer.from(psScript, 'utf16le').toString('base64');
     const command = `powershell.exe -NoProfile -ExecutionPolicy Bypass -EncodedCommand ${psBase64}`;
-    const { stdout } = await execAsync(command, { maxBuffer: 20 * 1024 * 1024, timeout: 15000 });
+    const { stdout } = await this.execCommand(command, { maxBuffer: 20 * 1024 * 1024, timeout: 15000 });
     const trimmed = stdout.trim();
 
     if (!trimmed) {
