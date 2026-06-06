@@ -37,8 +37,8 @@ export class StorageService {
       ...DEFAULT_SETTINGS,
       ...stored,
       // Ensure arrays are always defined
-      excludedProcessNames: stored.excludedProcessNames ?? DEFAULT_SETTINGS.excludedProcessNames,
-      excludedPaths: stored.excludedPaths ?? DEFAULT_SETTINGS.excludedPaths,
+      excludedProcessNames: stored.excludedProcessNames ?? DEFAULT_SETTINGS.excludedProcessNames ?? [],
+      excludedPaths: stored.excludedPaths ?? DEFAULT_SETTINGS.excludedPaths ?? [],
     };
   }
 
