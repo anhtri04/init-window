@@ -255,9 +255,9 @@ export function CollectionDetailPanel({
               </div>
             </div>
 
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto overflow-y-auto max-h-[500px]">
               <div className="min-w-[760px]">
-                <div className="grid grid-cols-[minmax(180px,1fr)_110px_90px_100px_110px_90px] gap-3 border-t border-hairline bg-surface px-4 py-2 text-xs font-semibold uppercase tracking-[0.1em] text-steel">
+                <div className="grid grid-cols-[minmax(180px,1fr)_110px_90px_100px_110px_90px] gap-3 border-t border-hairline bg-surface px-4 py-2 text-xs font-semibold uppercase tracking-[0.1em] text-steel sticky top-0 z-10">
                   <span>App</span>
                   <span>Status</span>
                   <span>CPU</span>
