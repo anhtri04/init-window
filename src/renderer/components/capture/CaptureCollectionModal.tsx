@@ -100,14 +100,7 @@ export function CaptureCollectionModal({ open, onComplete, onClose }: CaptureCol
         </button>
 
         <div className="bg-brand-teal-deep px-5 pb-5 pt-5 text-on-dark">
-          <div className="mb-3 inline-flex rounded-full bg-brand-green-soft px-3 py-1 text-xs font-semibold text-brand-green-dark">
-            Workspace capture
-          </div>
           <h1 className="text-2xl font-medium leading-tight tracking-[-0.5px]">Capture running apps</h1>
-          <p className="mt-2 max-w-xl text-sm leading-6 text-on-dark-muted">
-            Scan your current desktop, select the apps that belong together, and save them as a
-            launchable collection.
-          </p>
         </div>
 
       <div className="flex-1 overflow-y-auto p-4">
